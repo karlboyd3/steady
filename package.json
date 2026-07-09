@@ -11,7 +11,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "security:audit": "npm audit --omit=dev --audit-level=high",
-    "gen:icons": "node scripts/gen-icons.mjs"
+    "gen:icons": "node scripts/gen-icons.mjs",
+    "gen:feature-graphic": "node scripts/gen-feature-graphic.mjs",
+    "gen:assetlinks": "node scripts/gen-assetlinks.mjs",
+    "check:assetlinks": "node scripts/check-assetlinks.mjs"
   },
   "dependencies": {
     "next": "15.5.20",
@@ -31,7 +34,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.20",
     "jsdom": "^29.1.1",
-    "playwright": "^1.61.1",
     "sharp": "^0.35.3",
     "tailwindcss": "^4",
     "typescript": "^5",
