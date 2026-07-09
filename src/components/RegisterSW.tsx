@@ -11,13 +11,20 @@ export function RegisterSW() {
       process.env.NODE_ENV !== "production"
     )
       return;
-    const onLoad = () => {
+    const register = () => {
       navigator.serviceWorker.register("/sw.js").catch(() => {
         /* registration failed — app still works online */
       });
     };
-    window.addEventListener("load", onLoad);
-    return () => window.removeEventListener("load", onLoad);
+    // The window `load` event has usually already fired by the time this effect
+    // runs (React hydrates after load), so register right away in that case;
+    // otherwise wait for load.
+    if (document.readyState === "complete") {
+      register();
+      return;
+    }
+    window.addEventListener("load", register);
+    return () => window.removeEventListener("load", register);
   }, []);
   return null;
 }

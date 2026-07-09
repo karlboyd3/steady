@@ -11,4 +11,16 @@ npm-debug.log*
 .vercel
 next-env.d.ts
 
-.vercel
+# ---- TWA / Android signing — NEVER commit keystores ----
+*.keystore
+*.jks
+twa/android.keystore
+twa/*.keystore
+# Bubblewrap build output / generated Android project
+twa/app/
+twa/*.aab
+twa/*.apk
+twa/*.idsig
+twa/.gradle/
+twa/build/
+twa/node_modules/

@@ -22,11 +22,12 @@ const pkg = await readConst("PACKAGE_NAME", "com.bashntech.steady");
 const origin = process.argv[2] || `https://${domain}`;
 const url = `${origin.replace(/\/$/, "")}/.well-known/assetlinks.json`;
 
+class CheckError extends Error {}
 function fail(msg) {
-  console.error(`✗ ${msg}`);
-  process.exit(1);
+  throw new CheckError(msg);
 }
 
+async function run() {
 const res = await fetch(url).catch((e) => fail(`fetch failed: ${e.message}`));
 if (!res.ok) fail(`HTTP ${res.status} for ${url}`);
 const ct = res.headers.get("content-type") || "";
@@ -58,3 +59,9 @@ if (bad) fail(`malformed fingerprint: ${bad}`);
 console.log(`✓ assetlinks.json valid at ${url}`);
 console.log(`  package: ${pkg}`);
 console.log(`  fingerprints: ${fps.length}`);
+}
+
+run().catch((e) => {
+  console.error(`✗ ${e.message}`);
+  process.exitCode = 1;
+});
