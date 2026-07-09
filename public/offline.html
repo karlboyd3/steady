@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#245446" />
+    <title>Steady — Offline</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; }
+      body {
+        background: #eff4f1;
+        color: #22332d;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: calc(24px + env(safe-area-inset-top)) 22px
+          calc(24px + env(safe-area-inset-bottom));
+        text-align: center;
+      }
+      .wrap { max-width: 360px; }
+      svg { width: 132px; height: auto; margin: 0 auto 18px; display: block; }
+      h1 { font-size: 26px; color: #245446; margin-bottom: 10px; }
+      p { font-size: 17px; line-height: 1.5; color: #5c6e67; margin-bottom: 22px; }
+      button {
+        font: inherit;
+        font-weight: 700;
+        font-size: 18px;
+        color: #3a2a0e;
+        background: #e09a32;
+        border: none;
+        border-radius: 14px;
+        padding: 16px 26px;
+        min-height: 48px;
+        width: 100%;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <svg viewBox="0 0 200 160" role="img" aria-label="Steady turtle">
+        <ellipse cx="66" cy="128" rx="12" ry="9" fill="#7FB58A" />
+        <ellipse cx="128" cy="128" rx="12" ry="9" fill="#7FB58A" />
+        <polygon points="42,104 28,110 44,114" fill="#7FB58A" />
+        <ellipse cx="98" cy="92" rx="54" ry="40" fill="#4E8A66" stroke="#3C6E51" stroke-width="4" />
+        <circle cx="80" cy="84" r="10" fill="#6FA983" />
+        <circle cx="108" cy="74" r="10" fill="#6FA983" />
+        <circle cx="112" cy="100" r="9" fill="#6FA983" />
+        <circle cx="160" cy="80" r="18" fill="#8CBE8F" stroke="#6FA37A" stroke-width="3" />
+        <circle cx="166" cy="76" r="3.2" fill="#22332D" />
+        <path d="M 160 88 Q 166 92 172 87" stroke="#22332D" stroke-width="2.5" fill="none" stroke-linecap="round" />
+      </svg>
+      <h1>You&rsquo;re offline</h1>
+      <p>
+        Steady needs a connection to load for the first time. Once it&rsquo;s
+        loaded, your daily session works offline. Reconnect and try again.
+      </p>
+      <button onclick="location.reload()">Try again</button>
+    </div>
+  </body>
+</html>

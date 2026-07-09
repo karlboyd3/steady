@@ -5,13 +5,17 @@
    (so JS/CSS chunks fetched once stay available offline).
    ============================================================ */
 
-const CACHE = "steady-v1";
+const CACHE = "steady-v2";
+const OFFLINE_URL = "/offline.html";
 const SHELL = [
   "/",
   "/level",
   "/session",
   "/buddy",
+  "/privacy",
+  "/terms",
   "/manifest.webmanifest",
+  "/offline.html",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];
@@ -44,7 +48,9 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Navigations: try network, fall back to cached shell (offline).
+  // Navigations: try network, then cached page, then the app shell "/",
+  // and finally the branded offline page (Play requires this — never show
+  // Chrome's error page).
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -53,9 +59,14 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE).then((c) => c.put(req, copy));
           return res;
         })
-        .catch(() =>
-          caches.match(req).then((cached) => cached || caches.match("/"))
-        )
+        .catch(async () => {
+          const cache = await caches.open(CACHE);
+          return (
+            (await cache.match(req)) ||
+            (await cache.match("/")) ||
+            (await cache.match(OFFLINE_URL))
+          );
+        })
     );
     return;
   }

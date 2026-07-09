@@ -63,7 +63,11 @@
 .frame {
   width: 100%;
   max-width: 520px;
-  padding: 20px 18px 40px;
+  /* Safe-area insets so nothing sits under a notch or home indicator. */
+  padding: calc(20px + env(safe-area-inset-top))
+    calc(18px + env(safe-area-inset-right))
+    calc(40px + env(safe-area-inset-bottom))
+    calc(18px + env(safe-area-inset-left));
 }
 h1,
 h2,
@@ -74,6 +78,8 @@ button {
   font-family: inherit;
   cursor: pointer;
   border: none;
+  /* Kill the 300ms tap delay and double-tap-to-zoom on controls. */
+  touch-action: manipulation;
 }
 button:focus-visible,
 a:focus-visible,
@@ -667,3 +673,64 @@ input:focus-visible {
     transform: none;
   }
 }
+
+/* ---- Phase 1.5: mobile hardening ---- */
+
+/* Don't let the countdown/rep numbers or the figure be text-selected on
+   a long-press mis-tap during a session. */
+.count-big,
+.count-sub,
+.rest-big,
+.leg-badge,
+.ex-name,
+.ring-wrap,
+.next-name,
+.next-label {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Contain pull-to-refresh so a stray swipe can't reload mid-session. */
+.session-screen {
+  overscroll-behavior: contain;
+}
+
+/* ---- Legal / compliance pages ---- */
+.legal h1 {
+  font-size: 30px;
+  color: var(--pine-deep);
+  margin: 6px 0 4px;
+}
+.legal .updated {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+.legal h2 {
+  font-size: 20px;
+  color: var(--ink);
+  margin: 22px 0 6px;
+}
+.legal p,
+.legal li {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.legal ul {
+  margin: 0 0 10px 20px;
+}
+.legal a {
+  color: var(--pine-deep);
+  font-weight: 700;
+}
+.back-link {
+  display: inline-block;
+  margin-bottom: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pine-deep);
+}
+

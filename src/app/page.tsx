@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HomeScreen } from "@/components/HomeScreen";
 import { useProgressContext } from "@/components/ProgressProvider";
+import { primeAudio } from "@/lib/audio";
 
 export default function HomePage() {
   const router = useRouter();
@@ -27,7 +28,10 @@ export default function HomePage() {
       petName={p.petName}
       equipped={p.equipped}
       level={p.level}
-      onStart={() => router.push("/session")}
+      onStart={() => {
+        primeAudio();
+        router.push("/session");
+      }}
       onPick={p.selectDay}
       onChangeLevel={() => router.push("/level")}
       onVisitPet={() => router.push("/buddy")}

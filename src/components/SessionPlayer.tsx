@@ -1,17 +1,26 @@
 "use client";
 
 /* ============================================================
-   SessionPlayer — the guided workout screen. Presentation only;
-   all timing/transition logic lives in useSessionEngine + the
+   SessionPlayer — the guided workout screen. Presentation +
+   mobile hardening (wake lock, audio priming, exit guard).
+   All timing/transition logic lives in useSessionEngine + the
    pure lib/session-engine.
    ============================================================ */
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Figure } from "./Figure";
 import { Ring } from "./Ring";
 import { useSessionEngine } from "@/hooks/useSessionEngine";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useWakeLock } from "@/hooks/useWakeLock";
+import { primeAudio } from "@/lib/audio";
 import { PREP_SECS, REST_SECS, SWITCH_SECS, workSecs } from "@/lib/tracks";
 import { sessionElapsed } from "@/lib/session-engine";
+import {
+  guardReducer,
+  guardInitial,
+  type GuardEvent,
+} from "@/lib/session-guard";
 
 export function SessionPlayer({
   day,
@@ -33,6 +42,47 @@ export function SessionPlayer({
     useSessionEngine({ day, track, soundOn, onDone });
 
   const st = state;
+  const running = !st.done;
+
+  // Keep the screen awake while actively exercising (not while paused/done).
+  useWakeLock(running && !paused);
+
+  // Prime the iOS AudioContext on the first touch inside the session.
+  const primedRef = useRef(false);
+  const primeOnce = useCallback(() => {
+    if (!primedRef.current) {
+      primedRef.current = true;
+      primeAudio();
+    }
+  }, []);
+
+  // ---- exit guard ----
+  const [guard, setGuard] = useState(guardInitial);
+  const dispatch = useCallback(
+    (event: GuardEvent) => {
+      const r = guardReducer(guard, event, running);
+      setGuard(r.state);
+      if (r.pause && !paused) togglePause();
+      if (r.leave) onExit();
+    },
+    [guard, running, paused, togglePause, onExit]
+  );
+  const dispatchRef = useRef(dispatch);
+  dispatchRef.current = dispatch;
+
+  // Intercept the browser back-swipe: keep the user here and ask instead of
+  // discarding the session. A sentinel history entry catches the pop.
+  useEffect(() => {
+    if (st.done) return;
+    window.history.pushState({ steadySession: true }, "");
+    const onPop = () => {
+      window.history.pushState({ steadySession: true }, "");
+      dispatchRef.current({ type: "EXIT_REQUEST" });
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [st.done]);
+
   const item = items[st.exIdx];
   const ex = item.ex;
   const oneSide =
@@ -57,7 +107,6 @@ export function SessionPlayer({
   let poseT = 0;
   if (working) {
     if (reduced) {
-      // gentle, slow oscillation → Figure cross-fades between poses
       poseT = 0.5 - 0.5 * Math.cos((st.t * Math.PI) / 2.5);
     } else if (ex.type === "reps") {
       const phase = (st.t % (ex.cadence ?? 1)) / (ex.cadence ?? 1);
@@ -96,9 +145,9 @@ export function SessionPlayer({
   const nextItem = items[st.exIdx + 1];
 
   return (
-    <div>
+    <div className="session-screen" onPointerDownCapture={primeOnce}>
       <div className="session-top">
-        <button className="icon-btn" onClick={onExit}>
+        <button className="icon-btn" onClick={() => dispatch({ type: "EXIT_REQUEST" })}>
           ← Exit
         </button>
         <span className="where">
@@ -229,6 +278,32 @@ export function SessionPlayer({
               <li key={i}>{s}</li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {guard.asking && (
+        <div
+          className="modal-scrim"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="leave-title"
+        >
+          <div className="modal">
+            <h2 id="leave-title">Leave your session?</h2>
+            <p>
+              You&apos;re part-way through. If you leave now, this session
+              won&apos;t count toward your streak.
+            </p>
+            <button className="big-btn" onClick={() => dispatch({ type: "CANCEL" })}>
+              Keep going
+            </button>
+            <button
+              className="big-btn ghost"
+              onClick={() => dispatch({ type: "CONFIRM" })}
+            >
+              Leave session
+            </button>
+          </div>
         </div>
       )}
     </div>
