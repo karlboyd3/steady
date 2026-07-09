@@ -5,12 +5,13 @@
    Components never touch localStorage directly; they read/act here.
    ============================================================ */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   defaultState,
   load,
   nextStreak,
   save,
+  saveNow,
   todayISO,
   type SteadyState,
 } from "@/lib/storage";
@@ -36,6 +37,24 @@ export function useProgress() {
   useEffect(() => {
     if (hydrated) save(state);
   }, [state, hydrated]);
+
+  // Flush immediately when the page is being hidden/closed/refreshed so the
+  // last action is never lost to the debounce window.
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  useEffect(() => {
+    if (!hydrated) return;
+    const flush = () => saveNow(stateRef.current);
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [hydrated]);
 
   const patch = useCallback(
     (p: Partial<SteadyState> | ((s: SteadyState) => Partial<SteadyState>)) => {
