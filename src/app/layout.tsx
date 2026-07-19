@@ -23,32 +23,65 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Steady — 30-Day Knee Strength & Recovery",
-  description:
-    "A gentle, progressive 30-day program to strengthen the muscles that support your knees. Guided sessions with timers, rep pacing, and animated demos.",
-  applicationName: "Steady",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Steady",
-  },
-  icons: {
-    icon: [
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: [{ url: "/icons/icon-192.png", sizes: "192x192" }],
-  },
+const DEFAULT_DESCRIPTION =
+  "A gentle, progressive 30-day program to strengthen the muscles that support your knees. Guided sessions with timers, rep pacing, and animated demos.";
+const DEFAULT_ICONS: Metadata["icons"] = {
+  icon: [
+    { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+  ],
+  apple: [{ url: "/icons/icon-192.png", sizes: "192x192" }],
 };
 
-export const viewport: Viewport = {
-  themeColor: "#245446",
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tenantKey = (await headers()).get("x-tenant-key");
+  const tenant = await getTenant(tenantKey);
+
+  if (tenant.slug === "default") {
+    return {
+      title: "Steady — 30-Day Knee Strength & Recovery",
+      description: DEFAULT_DESCRIPTION,
+      applicationName: "Steady",
+      manifest: "/manifest.webmanifest",
+      appleWebApp: {
+        capable: true,
+        statusBarStyle: "default",
+        title: "Steady",
+      },
+      icons: DEFAULT_ICONS,
+    };
+  }
+
+  return {
+    title: `${tenant.clinicName} — 30-Day Knee Strength & Recovery`,
+    description: tenant.welcomeMessage ?? DEFAULT_DESCRIPTION,
+    applicationName: tenant.clinicName,
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: tenant.clinicName,
+    },
+    icons: tenant.iconUrl
+      ? {
+          icon: [{ url: tenant.iconUrl, sizes: "512x512", type: "image/png" }],
+          apple: [{ url: tenant.iconUrl, sizes: "512x512" }],
+        }
+      : DEFAULT_ICONS,
+  };
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  const tenantKey = (await headers()).get("x-tenant-key");
+  const tenant = await getTenant(tenantKey);
+
+  return {
+    themeColor: tenant.slug === "default" ? "#245446" : tenant.colors.primary,
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  };
+}
 
 export default async function RootLayout({
   children,
