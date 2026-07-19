@@ -13,10 +13,10 @@ vi.mock("next/cache", () => ({
 const singleMock = vi.fn();
 const eqMock = vi.fn(() => ({ eq: eqMock, single: singleMock }));
 const fromMock = vi.fn(() => ({ select: () => ({ eq: eqMock }) }));
-const createClientMock = vi.fn(() => ({ from: fromMock }));
+const createClientMock = vi.fn().mockReturnValue({ from: fromMock });
 
 vi.mock("@supabase/supabase-js", () => ({
-  createClient: (...args: unknown[]) => createClientMock(...args),
+  createClient: (url: string, key: string, opts: unknown) => createClientMock(url, key, opts),
 }));
 
 const row = {
