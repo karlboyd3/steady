@@ -1,9 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Atkinson_Hyperlegible, Fraunces } from "next/font/google";
 import "./globals.css";
 import { RegisterSW } from "@/components/RegisterSW";
 import { ProgressProvider } from "@/components/ProgressProvider";
 import { DisclaimerModal } from "@/components/DisclaimerModal";
+import { getTenant } from "@/lib/tenant/get-tenant";
+import { TenantProvider } from "@/lib/tenant/tenant-provider";
+import { tenantCssVars, type TenantCssVars } from "@/lib/tenant/theme";
 
 const atkinson = Atkinson_Hyperlegible({
   variable: "--font-atkinson",
@@ -46,20 +50,26 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const tenantKey = (await headers()).get("x-tenant-key");
+  const tenant = await getTenant(tenantKey);
+  const cssVars = tenantCssVars(tenant);
+
   return (
-    <html lang="en">
+    <html lang="en" style={cssVars as React.CSSProperties & TenantCssVars}>
       <body className={`${atkinson.variable} ${fraunces.variable}`}>
-        <ProgressProvider>
-          <div className="steady">
-            <div className="frame">{children}</div>
-          </div>
-          <DisclaimerModal />
-        </ProgressProvider>
+        <TenantProvider tenant={tenant}>
+          <ProgressProvider>
+            <div className="steady">
+              <div className="frame">{children}</div>
+            </div>
+            <DisclaimerModal />
+          </ProgressProvider>
+        </TenantProvider>
         <RegisterSW />
       </body>
     </html>
