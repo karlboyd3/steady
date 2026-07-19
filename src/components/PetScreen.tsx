@@ -1,6 +1,6 @@
 "use client";
 
-import { Pet } from "./Pet";
+import { ProgressCompanion } from "./ProgressCompanion";
 import { ITEMS, type Equipped, type Item } from "@/lib/rewards";
 
 export function PetScreen({
@@ -35,7 +35,7 @@ export function PetScreen({
         <span className="coin-chip">🪙 {coins}</span>
       </div>
       <div className="card" style={{ textAlign: "center" }}>
-        <Pet equipped={equipped} size={230} name={petName} />
+        <ProgressCompanion equipped={equipped} size={230} name={petName} />
         <div
           style={{
             display: "flex",

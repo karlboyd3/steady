@@ -1,6 +1,6 @@
 "use client";
 
-import { Pet } from "./Pet";
+import { ProgressCompanion } from "./ProgressCompanion";
 import { buildDay, phaseOf, sessionMinutes, TRACKS } from "@/lib/tracks";
 import type { Equipped } from "@/lib/rewards";
 
@@ -88,7 +88,7 @@ export function HomeScreen({
       </div>
 
       <button className="card pet-card" onClick={onVisitPet}>
-        <Pet equipped={equipped} size={92} name={petName} />
+        <ProgressCompanion equipped={equipped} size={92} name={petName} />
         <div className="pet-info">
           <div className="pet-name-row">
             {petName || "Your buddy"}{" "}

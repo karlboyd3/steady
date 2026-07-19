@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Pet } from "./Pet";
+import { ProgressCompanion } from "./ProgressCompanion";
 import { sessionMinutes } from "@/lib/tracks";
 import { coinsForCompletion, type Equipped } from "@/lib/rewards";
+import { useTenant } from "@/lib/tenant/tenant-provider";
+import { doneHeroCopy } from "@/lib/tenant/copy";
 
 export type FinishDest = "home" | "pet" | "level";
 
@@ -28,15 +30,15 @@ export function DoneScreen({
   // Freeze the earned amount at mount so crediting doesn't change the display.
   const [earned] = useState(() => coinsForCompletion(streak, alreadyDone));
   const finale = day === 30;
+  const tenant = useTenant();
 
   return (
     <div>
       <div className="card done-hero">
-        <Pet equipped={equipped} size={175} cheer name={petName} />
+        <ProgressCompanion equipped={equipped} size={175} cheer name={petName} />
         <h2>Day {day} complete!</h2>
         <p style={{ fontSize: 17, color: "var(--ink-soft)" }}>
-          {sessionMinutes(day, track)} minutes of steady work —{" "}
-          {petName || "your buddy"} is doing a happy dance.
+          {doneHeroCopy(tenant, petName, sessionMinutes(day, track))}
         </p>
         <div className="coin-earn">
           +{earned} 🪙 {alreadyDone ? "for the repeat" : "(includes streak bonus)"}
