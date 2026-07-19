@@ -1,13 +1,19 @@
 /* ============================================================
    STEADY — Versioned localStorage persistence
-   Single JSON blob under `steady:v1`. All app state flows through
-   here (via useProgress) — no component touches localStorage directly.
+   One JSON blob per tenant, under `steady:<slug>:v1`. All app state
+   flows through here (via useProgress) — no component touches
+   localStorage directly.
    ============================================================ */
 
 import { EMPTY_EQUIPPED, type Equipped, type Slot } from "./rewards";
 
+/** Legacy pre-multi-tenant key, kept only so migrateLegacyKey can claim it once. */
 export const STORAGE_KEY = "steady:v1";
 export const SCHEMA_VERSION = 1;
+
+export function storageKey(slug: string): string {
+  return `steady:${slug}:v1`;
+}
 
 export interface SteadyState {
   version: number;
@@ -152,11 +158,27 @@ function migrate(raw: Record<string, unknown>): unknown {
   }
 }
 
+/**
+ * One-time, idempotent claim of the legacy unscoped key for the default
+ * tenant only: if the scoped key is already there, or there's nothing
+ * legacy to claim, this is a no-op.
+ */
+function migrateLegacyKey(slug: string): void {
+  if (slug !== "default") return;
+  const scoped = storageKey(slug);
+  if (window.localStorage.getItem(scoped) !== null) return;
+  const legacy = window.localStorage.getItem(STORAGE_KEY);
+  if (legacy === null) return;
+  window.localStorage.setItem(scoped, legacy);
+  window.localStorage.removeItem(STORAGE_KEY);
+}
+
 /** Load state, validating shape and falling back to defaults on corruption. */
-export function load(): SteadyState {
+export function load(slug: string): SteadyState {
   if (typeof window === "undefined") return defaultState();
   try {
-    const rawStr = window.localStorage.getItem(STORAGE_KEY);
+    migrateLegacyKey(slug);
+    const rawStr = window.localStorage.getItem(storageKey(slug));
     if (!rawStr) return defaultState();
     const parsed: unknown = JSON.parse(rawStr);
     const migrated = isObj(parsed) ? migrate(parsed) : parsed;
@@ -171,12 +193,12 @@ export function load(): SteadyState {
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Persist state (debounced ~150ms). */
-export function save(state: SteadyState): void {
+export function save(slug: string, state: SteadyState): void {
   if (typeof window === "undefined") return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      window.localStorage.setItem(storageKey(slug), JSON.stringify(state));
     } catch {
       /* quota or unavailable — nothing we can do */
     }
@@ -184,14 +206,14 @@ export function save(state: SteadyState): void {
 }
 
 /** Write immediately, bypassing the debounce (used on unload / tests). */
-export function saveNow(state: SteadyState): void {
+export function saveNow(slug: string, state: SteadyState): void {
   if (typeof window === "undefined") return;
   if (saveTimer) {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.localStorage.setItem(storageKey(slug), JSON.stringify(state));
   } catch {
     /* ignore */
   }

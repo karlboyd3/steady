@@ -2,13 +2,15 @@
 
 import { createContext, useContext } from "react";
 import { useProgress } from "@/hooks/useProgress";
+import { useTenant } from "@/lib/tenant/tenant-provider";
 
 type ProgressValue = ReturnType<typeof useProgress>;
 
 const ProgressContext = createContext<ProgressValue | null>(null);
 
 export function ProgressProvider({ children }: { children: React.ReactNode }) {
-  const progress = useProgress();
+  const tenant = useTenant();
+  const progress = useProgress(tenant.slug);
   return (
     <ProgressContext.Provider value={progress}>
       {children}

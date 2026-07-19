@@ -23,20 +23,20 @@ import {
   type Item,
 } from "@/lib/rewards";
 
-export function useProgress() {
+export function useProgress(slug: string) {
   const [state, setState] = useState<SteadyState>(defaultState);
   const [hydrated, setHydrated] = useState(false);
 
   // Load persisted state once, on the client, after mount.
   useEffect(() => {
-    setState(load());
+    setState(load(slug));
     setHydrated(true);
-  }, []);
+  }, [slug]);
 
   // Persist (debounced) on every change once hydrated.
   useEffect(() => {
-    if (hydrated) save(state);
-  }, [state, hydrated]);
+    if (hydrated) save(slug, state);
+  }, [state, hydrated, slug]);
 
   // Flush immediately when the page is being hidden/closed/refreshed so the
   // last action is never lost to the debounce window.
@@ -44,7 +44,7 @@ export function useProgress() {
   stateRef.current = state;
   useEffect(() => {
     if (!hydrated) return;
-    const flush = () => saveNow(stateRef.current);
+    const flush = () => saveNow(slug, stateRef.current);
     const onVisibility = () => {
       if (document.visibilityState === "hidden") flush();
     };
@@ -54,7 +54,7 @@ export function useProgress() {
       window.removeEventListener("pagehide", flush);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [hydrated]);
+  }, [hydrated, slug]);
 
   const patch = useCallback(
     (p: Partial<SteadyState> | ((s: SteadyState) => Partial<SteadyState>)) => {

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   STORAGE_KEY,
   SCHEMA_VERSION,
+  storageKey,
   defaultState,
   load,
   save,
@@ -45,34 +46,84 @@ describe("round-trip", () => {
       disclaimerAccepted: true,
       soundOn: false,
     };
-    saveNow(s);
-    expect(load()).toEqual(s);
+    saveNow("default", s);
+    expect(load("default")).toEqual(s);
   });
 
   it("debounced save eventually persists", async () => {
     const s = { ...defaultState(), coins: 99 };
-    save(s);
+    save("default", s);
     await new Promise((r) => setTimeout(r, 200));
-    expect(load().coins).toBe(99);
+    expect(load("default").coins).toBe(99);
+  });
+});
+
+describe("tenant scoping", () => {
+  it("keeps two tenants' state isolated under the same origin", () => {
+    saveNow("acme-pt", { ...defaultState(), coins: 5 });
+    saveNow("beta-clinic", { ...defaultState(), coins: 500 });
+    expect(load("acme-pt").coins).toBe(5);
+    expect(load("beta-clinic").coins).toBe(500);
+  });
+
+  it("stores each tenant under its own key", () => {
+    saveNow("acme-pt", { ...defaultState(), coins: 5 });
+    expect(localStorage.getItem(storageKey("acme-pt"))).not.toBeNull();
+    expect(localStorage.getItem(storageKey("beta-clinic"))).toBeNull();
+  });
+
+  it("fails soft to defaults for a tenant with nothing stored", () => {
+    expect(load("unknown-slug")).toEqual(defaultState());
+  });
+});
+
+describe("legacy key migration", () => {
+  it("claims the legacy unscoped key for the default tenant only, once", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...defaultState(), coins: 77 })
+    );
+    expect(load("default").coins).toBe(77);
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(localStorage.getItem(storageKey("default"))).not.toBeNull();
+  });
+
+  it("is idempotent: a second load after migration doesn't touch anything odd", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...defaultState(), coins: 77 })
+    );
+    load("default");
+    saveNow("default", { ...defaultState(), coins: 88 });
+    expect(load("default").coins).toBe(88);
+  });
+
+  it("does not migrate the legacy key into a non-default tenant", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...defaultState(), coins: 77 })
+    );
+    expect(load("acme-pt")).toEqual(defaultState());
+    expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
   });
 });
 
 describe("corruption / validation fallback", () => {
   it("returns defaults for a non-JSON blob", () => {
-    localStorage.setItem(STORAGE_KEY, "{not valid json");
-    expect(load()).toEqual(defaultState());
+    localStorage.setItem(storageKey("default"), "{not valid json");
+    expect(load("default")).toEqual(defaultState());
   });
 
   it("returns defaults when there is nothing stored", () => {
-    expect(load()).toEqual(defaultState());
+    expect(load("default")).toEqual(defaultState());
   });
 
   it("coerces missing / wrong-typed fields to defaults", () => {
     localStorage.setItem(
-      STORAGE_KEY,
+      storageKey("default"),
       JSON.stringify({ track: "banana", coins: null, petName: 5 })
     );
-    const loaded = load();
+    const loaded = load("default");
     expect(loaded.track).toBe(defaultState().track);
     expect(loaded.coins).toBe(0);
     expect(loaded.petName).toBe("Shelby");
@@ -80,20 +131,20 @@ describe("corruption / validation fallback", () => {
 
   it("filters out-of-range completed days and non-string owned items", () => {
     localStorage.setItem(
-      STORAGE_KEY,
+      storageKey("default"),
       JSON.stringify({ completed: [1, 2, 99, -3, "x"], owned: ["crown", 7, null] })
     );
-    const loaded = load();
+    const loaded = load("default");
     expect(loaded.completed).toEqual([1, 2]);
     expect(loaded.owned).toEqual(["crown"]);
   });
 
   it("rebuilds a valid equipped object from partial data", () => {
     localStorage.setItem(
-      STORAGE_KEY,
+      storageKey("default"),
       JSON.stringify({ equipped: { hat: "crown", bogus: "x" } })
     );
-    const loaded = load();
+    const loaded = load("default");
     expect(loaded.equipped).toEqual({
       hat: "crown",
       face: null,
