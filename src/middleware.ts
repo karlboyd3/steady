@@ -50,6 +50,7 @@ export function middleware(request: NextRequest) {
 
   const headers = new Headers(request.headers);
   headers.set("x-tenant-key", resolveTenantKey(request));
+  headers.set("x-is-admin", pathname.startsWith("/admin") ? "1" : "0");
   return NextResponse.next({ request: { headers } });
 }
 

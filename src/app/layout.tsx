@@ -88,8 +88,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const tenantKey = (await headers()).get("x-tenant-key");
-  const tenant = await getTenant(tenantKey);
+  const hdrs = await headers();
+  const tenant = await getTenant(hdrs.get("x-tenant-key"));
+  const isAdmin = hdrs.get("x-is-admin") === "1";
   const cssVars = tenantCssVars(tenant);
 
   return (
@@ -98,7 +99,7 @@ export default async function RootLayout({
         <TenantProvider tenant={tenant}>
           <ProgressProvider>
             <div className="steady">
-              <div className="frame">{children}</div>
+              <div className={isAdmin ? "frame admin-frame" : "frame"}>{children}</div>
             </div>
             <DisclaimerModal />
           </ProgressProvider>

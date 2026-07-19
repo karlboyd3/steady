@@ -5,7 +5,8 @@ import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { DEFAULT_TENANT, type TenantConfig } from "./types";
 
-function supabase() {
+/** Service-role Supabase client. Shared with the admin CRUD layer (admin-repo.ts). */
+export function supabase() {
   return createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -13,7 +14,7 @@ function supabase() {
   );
 }
 
-interface TenantRow {
+export interface TenantRow {
   slug: string;
   clinic_name: string;
   logo_url: string | null;
@@ -28,7 +29,7 @@ interface TenantRow {
   contact_email: string | null;
 }
 
-function mapRow(d: TenantRow): TenantConfig {
+export function mapRow(d: TenantRow): TenantConfig {
   return {
     slug: d.slug,
     clinicName: d.clinic_name,

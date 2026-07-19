@@ -98,4 +98,17 @@ describe("middleware admin gating", () => {
     const res = middleware(request("acme-pt.getsteady.app", "/"));
     expect(res.headers.get("x-middleware-request-x-tenant-key")).toBe("acme-pt");
   });
+
+  it("sets x-is-admin=0 for non-admin paths", () => {
+    const res = middleware(request("getsteady.app", "/"));
+    expect(res.headers.get("x-middleware-request-x-is-admin")).toBe("0");
+  });
+
+  it("sets x-is-admin=1 for admin paths", () => {
+    process.env.ADMIN_TOKEN = "secret-token";
+    const req = request("getsteady.app", "/admin");
+    req.cookies.set("admin_session", "secret-token");
+    const res = middleware(req);
+    expect(res.headers.get("x-middleware-request-x-is-admin")).toBe("1");
+  });
 });

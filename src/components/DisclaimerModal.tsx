@@ -1,11 +1,13 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useProgressContext } from "./ProgressProvider";
 
-/** First-launch safety disclaimer. Dismissal is persisted. */
+/** First-launch safety disclaimer. Dismissal is persisted. Never shown on /admin. */
 export function DisclaimerModal() {
   const { hydrated, disclaimerAccepted, acceptDisclaimer } = useProgressContext();
-  if (!hydrated || disclaimerAccepted) return null;
+  const pathname = usePathname();
+  if (!hydrated || disclaimerAccepted || pathname?.startsWith("/admin")) return null;
   return (
     <div
       className="modal-scrim"

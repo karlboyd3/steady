@@ -734,3 +734,81 @@ input:focus-visible {
   color: var(--pine-deep);
 }
 
+/* ============================================================
+   Admin panel — operator-only clinic CRUD. Wider frame (see
+   .admin-frame) since this is a desktop tool, not the mobile PWA.
+   ============================================================ */
+
+.admin-frame {
+  max-width: 960px;
+}
+.admin-login {
+  max-width: 360px;
+  margin: 48px auto;
+}
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.admin-field input,
+.admin-field textarea {
+  font: inherit;
+  font-weight: 400;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.admin-field input[type="color"] {
+  padding: 4px;
+  height: 40px;
+}
+.admin-field textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+.admin-color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 14px;
+}
+.admin-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.field-error {
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 700;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.admin-table th {
+  color: var(--ink-soft);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
