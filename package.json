@@ -17,9 +17,12 @@
     "check:assetlinks": "node scripts/check-assetlinks.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
     "next": "15.5.20",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
