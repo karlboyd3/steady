@@ -18,6 +18,9 @@ export default function BuddyPage() {
       owned={p.owned}
       equipped={p.equipped}
       level={p.level}
+      species={p.species}
+      speciesChosen={p.speciesChosen}
+      setSpecies={p.setSpecies}
       onBuy={p.buyItem}
       onEquip={p.equipItem}
       onBack={() => router.push("/")}

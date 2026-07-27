@@ -10,7 +10,7 @@ const ProgressContext = createContext<ProgressValue | null>(null);
 
 export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const tenant = useTenant();
-  const progress = useProgress(tenant.slug);
+  const progress = useProgress(tenant.slug, tenant.defaultSpecies);
   return (
     <ProgressContext.Provider value={progress}>
       {children}

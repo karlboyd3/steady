@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import type { TenantFormState } from "@/app/admin/actions";
 import type { TenantAdminRecord } from "@/lib/tenant/admin-repo";
+import { SPECIES } from "@/lib/rewards";
 
 const INITIAL_STATE: TenantFormState = { error: null, fieldErrors: {} };
 
@@ -103,7 +104,18 @@ export function TenantForm({
           type="checkbox"
           defaultChecked={initial?.mascotEnabled ?? true}
         />
-        Show the Shelby mascot
+        Show the pet mascot
+      </label>
+
+      <label className="admin-field">
+        Default pet species
+        <select name="defaultSpecies" defaultValue={initial?.defaultSpecies ?? "turtle"}>
+          {SPECIES.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.emoji} {s.label}
+            </option>
+          ))}
+        </select>
       </label>
 
       <label className="admin-field">

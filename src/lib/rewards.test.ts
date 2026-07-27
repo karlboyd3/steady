@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   ITEMS,
+  SPECIES,
+  SOCKET_FOR_SLOT,
   EMPTY_EQUIPPED,
   coinsForCompletion,
   petLevel,
@@ -8,6 +10,7 @@ import {
   applyPurchase,
   applyEquip,
   itemById,
+  isSpecies,
   type Item,
   type Equipped,
 } from "./rewards";
@@ -105,5 +108,30 @@ describe("itemById", () => {
   it("finds a known item and returns undefined otherwise", () => {
     expect(itemById("medal")?.cost).toBe(25);
     expect(itemById("nope" as unknown as string) as Item | undefined).toBeUndefined();
+  });
+});
+
+describe("SPECIES", () => {
+  it("has exactly 6 unique species", () => {
+    expect(SPECIES).toHaveLength(6);
+    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(6);
+  });
+
+  it("isSpecies validates against the catalog", () => {
+    expect(isSpecies("turtle")).toBe(true);
+    expect(isSpecies("fox")).toBe(true);
+    expect(isSpecies("dragon")).toBe(false);
+    expect(isSpecies(undefined)).toBe(false);
+    expect(isSpecies(42)).toBe(false);
+  });
+});
+
+describe("SOCKET_FOR_SLOT", () => {
+  it("maps every wearable slot to a 3D socket, but not bg", () => {
+    expect(SOCKET_FOR_SLOT.hat).toBe("head");
+    expect(SOCKET_FOR_SLOT.face).toBe("face");
+    expect(SOCKET_FOR_SLOT.neck).toBe("neck");
+    expect(SOCKET_FOR_SLOT.chest).toBe("chest");
+    expect(SOCKET_FOR_SLOT.bg).toBeUndefined();
   });
 });

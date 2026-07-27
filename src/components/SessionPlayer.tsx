@@ -10,12 +10,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Figure } from "./Figure";
 import { Ring } from "./Ring";
-import { useSessionEngine } from "@/hooks/useSessionEngine";
+import { ExerciseAnimation } from "./ExerciseAnimation";
+import { useSessionEngine, type SessionSummary } from "@/hooks/useSessionEngine";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useWakeLock } from "@/hooks/useWakeLock";
+import { usePetPreload } from "./pet3d/usePetPreload";
 import { primeAudio } from "@/lib/audio";
 import { PREP_SECS, REST_SECS, SWITCH_SECS, workSecs } from "@/lib/tracks";
-import { sessionElapsed } from "@/lib/session-engine";
+import { exerciseProgressFractions, sessionElapsed } from "@/lib/session-engine";
+import type { RepOverrides } from "@/lib/exercises";
+import type { Species } from "@/lib/rewards";
 import {
   guardReducer,
   guardInitial,
@@ -26,20 +30,27 @@ export function SessionPlayer({
   day,
   track,
   soundOn,
+  species,
   onToggleSound,
   onDone,
   onExit,
+  overrides,
+  onShowExerciseDetail,
 }: {
   day: number;
   track: number;
   soundOn: boolean;
+  species: Species;
   onToggleSound: () => void;
-  onDone: () => void;
+  onDone: (summary: SessionSummary) => void;
   onExit: () => void;
+  overrides?: RepOverrides;
+  onShowExerciseDetail?: (index: number) => void;
 }) {
   const reduced = useReducedMotion();
+  usePetPreload(species);
   const { items, state, paused, togglePause, skip, back, beginWork2 } =
-    useSessionEngine({ day, track, soundOn, onDone });
+    useSessionEngine({ day, track, soundOn, onDone, overrides });
 
   const st = state;
   const running = !st.done;
@@ -163,17 +174,18 @@ export function SessionPlayer({
         </button>
       </div>
       <div
-        className="progress-track"
+        className="segbar"
         role="progressbar"
         aria-label="Session progress"
         aria-valuenow={Math.round((elapsed / totalSecs) * 100)}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        <div
-          className="progress-fill"
-          style={{ width: `${Math.min(100, (elapsed / totalSecs) * 100)}%` }}
-        />
+        {exerciseProgressFractions(st, items).map((frac, i) => (
+          <div key={i} className="segbar-seg">
+            <div className="segbar-fill" style={{ width: `${frac * 100}%` }} />
+          </div>
+        ))}
       </div>
 
       {st.stage === "rest" ? (
@@ -190,7 +202,7 @@ export function SessionPlayer({
           <div className="next-label">Up next</div>
           <div className="next-name">{nextItem.ex.name}</div>
           <div style={{ width: 170, height: 170, margin: "6px auto 0" }}>
-            <Figure exercise={nextItem.ex} t={0} />
+            <ExerciseAnimation exerciseId={nextItem.id} />
           </div>
           <div className="controls">
             <button className="ctrl" onClick={back}>
@@ -230,7 +242,19 @@ export function SessionPlayer({
       ) : (
         <div className={`stage-card ${st.stage === "prep" ? "prep" : ""}`}>
           {legLabel && <span className="leg-badge">{legLabel}</span>}
-          <div className="ex-name display">{ex.name}</div>
+          <div className="ex-name-row">
+            <div className="ex-name display">{ex.name}</div>
+            {onShowExerciseDetail && (
+              <button
+                type="button"
+                className="ex-help-btn"
+                onClick={() => onShowExerciseDetail(st.exIdx)}
+                aria-label={`About ${ex.name}`}
+              >
+                ?
+              </button>
+            )}
+          </div>
           <p className="ex-cue">
             {st.stage === "prep"
               ? `Get in position… starting in ${Math.ceil(dur - st.t)}`
@@ -239,7 +263,7 @@ export function SessionPlayer({
 
           {st.stage === "prep" ? (
             <div style={{ width: 240, height: 240, margin: "0 auto" }}>
-              <Figure exercise={ex} t={0} />
+              <ExerciseAnimation exerciseId={item.id} />
             </div>
           ) : (
             <Ring

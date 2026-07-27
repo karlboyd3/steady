@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildDay } from "@/lib/tracks";
+import { applyOverrides, type RepOverrides } from "@/lib/exercises";
 import {
   back as engBack,
   beginWork2 as engBeginWork2,
@@ -22,18 +23,36 @@ import { useBeeper } from "./useBeeper";
 const TICK_MS = 100;
 const DT = TICK_MS / 1000;
 
+export type { RepOverrides };
+
+/** How much of the session was cut short via the Skip control — feeds the
+ * celebration system's subdued-tone decision (src/lib/celebration.ts). */
+export interface SessionSummary {
+  skippedCount: number;
+  totalCount: number;
+}
+
 interface Args {
   day: number;
   track: number;
   soundOn: boolean;
-  onDone: () => void;
+  onDone: (summary: SessionSummary) => void;
+  /** Applied on top of buildDay()'s resolved volume, for this session only. */
+  overrides?: RepOverrides;
 }
 
-export function useSessionEngine({ day, track, soundOn, onDone }: Args) {
-  const items = useMemo(() => buildDay(day, track), [day, track]);
+export function useSessionEngine({ day, track, soundOn, onDone, overrides }: Args) {
+  const items = useMemo(
+    () => applyOverrides(buildDay(day, track), overrides),
+    [day, track, overrides]
+  );
   const [state, setState] = useState<SessionState>(initialState);
   const [paused, setPaused] = useState(false);
   const beep = useBeeper();
+  // A ref, not state: mutated inside a plain callback (not a setState
+  // updater), so it's never at risk of StrictMode's dev-only double-invoke
+  // of updater functions double-counting it.
+  const skippedRef = useRef(0);
 
   const soundRef = useRef(soundOn);
   soundRef.current = soundOn;
@@ -70,11 +89,20 @@ export function useSessionEngine({ day, track, soundOn, onDone }: Args) {
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   useEffect(() => {
-    if (state.done) onDoneRef.current();
-  }, [state.done]);
+    if (state.done) {
+      onDoneRef.current({ skippedCount: skippedRef.current, totalCount: items.length });
+    }
+  }, [state.done, items.length]);
 
   const togglePause = useCallback(() => setPaused((p) => !p), []);
-  const skip = useCallback(() => setState((p) => engSkip(p, items)), [items]);
+  // A rest→next advance is "ready early", not a content skip (the
+  // exercise's work already finished) — session-engine.ts's own skip()
+  // already treats it that way; only count stages where work is actually
+  // being cut short.
+  const skip = useCallback(() => {
+    if (state.stage !== "rest") skippedRef.current += 1;
+    setState((p) => engSkip(p, items));
+  }, [items, state.stage]);
   const back = useCallback(() => setState(engBack), []);
   const beginWork2 = useCallback(() => setState(engBeginWork2), []);
 

@@ -5,11 +5,11 @@
    localStorage directly.
    ============================================================ */
 
-import { EMPTY_EQUIPPED, type Equipped, type Slot } from "./rewards";
+import { EMPTY_EQUIPPED, isSpecies, type Equipped, type Slot, type Species } from "./rewards";
 
 /** Legacy pre-multi-tenant key, kept only so migrateLegacyKey can claim it once. */
 export const STORAGE_KEY = "steady:v1";
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export function storageKey(slug: string): string {
   return `steady:${slug}:v1`;
@@ -29,11 +29,15 @@ export interface SteadyState {
   owned: string[];
   equipped: Equipped;
   petName: string;
+  species: Species;
+  /** False only for a genuinely fresh install that hasn't picked a species
+   * yet — migrated users are stamped true so they're never re-prompted. */
+  speciesChosen: boolean;
   disclaimerAccepted: boolean;
   soundOn: boolean;
 }
 
-export function defaultState(): SteadyState {
+export function defaultState(defaultSpecies: Species = "turtle"): SteadyState {
   return {
     version: SCHEMA_VERSION,
     track: 1,
@@ -47,6 +51,8 @@ export function defaultState(): SteadyState {
     owned: [],
     equipped: { ...EMPTY_EQUIPPED },
     petName: "Shelby",
+    species: defaultSpecies,
+    speciesChosen: false,
     disclaimerAccepted: false,
     soundOn: true,
   };
@@ -143,16 +149,26 @@ function coerce(raw: unknown): SteadyState {
       : d.owned,
     equipped: coerceEquipped(raw.equipped),
     petName: str(raw.petName, d.petName),
+    species: isSpecies(raw.species) ? raw.species : d.species,
+    speciesChosen: bool(raw.speciesChosen, d.speciesChosen),
     disclaimerAccepted: bool(raw.disclaimerAccepted, d.disclaimerAccepted),
     soundOn: bool(raw.soundOn, d.soundOn),
   };
+}
+
+/** v1 had no species concept — everyone was Shelby the turtle. Stamp that in
+ * explicitly and mark as already-chosen so migrated users are never
+ * re-prompted with the species picker. */
+function migrateV1toV2(raw: Record<string, unknown>): Record<string, unknown> {
+  return { ...raw, version: 2, species: "turtle", speciesChosen: true };
 }
 
 /** Forward-migration hook. Switch on version as the schema evolves. */
 function migrate(raw: Record<string, unknown>): unknown {
   const version = num(raw.version, 0);
   switch (version) {
-    // case 1: return migrateV1toV2(raw);
+    case 1:
+      return migrateV1toV2(raw);
     default:
       return raw;
   }
@@ -173,18 +189,22 @@ function migrateLegacyKey(slug: string): void {
   window.localStorage.removeItem(STORAGE_KEY);
 }
 
-/** Load state, validating shape and falling back to defaults on corruption. */
-export function load(slug: string): SteadyState {
-  if (typeof window === "undefined") return defaultState();
+/**
+ * Load state, validating shape and falling back to defaults on corruption.
+ * `defaultSpecies` (a tenant's white-label default) only seeds a genuinely
+ * fresh install — it never overrides a stored or migrated species.
+ */
+export function load(slug: string, defaultSpecies?: Species): SteadyState {
+  if (typeof window === "undefined") return defaultState(defaultSpecies);
   try {
     migrateLegacyKey(slug);
     const rawStr = window.localStorage.getItem(storageKey(slug));
-    if (!rawStr) return defaultState();
+    if (!rawStr) return defaultState(defaultSpecies);
     const parsed: unknown = JSON.parse(rawStr);
     const migrated = isObj(parsed) ? migrate(parsed) : parsed;
     return coerce(migrated);
   } catch {
-    return defaultState();
+    return defaultState(defaultSpecies);
   }
 }
 

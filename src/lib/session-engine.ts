@@ -109,6 +109,31 @@ export function beginWork2(state: SessionState): SessionState {
   return { ...state, stage: "work2", t: 0 };
 }
 
+/**
+ * Per-exercise completion fraction (0–1), one entry per item — drives the
+ * Player's segmented progress bar. Rest counts as the preceding exercise
+ * being fully done; prep counts as not-yet-started.
+ */
+export function exerciseProgressFractions(
+  state: SessionState,
+  items: DayItem[]
+): number[] {
+  return items.map((item, i) => {
+    if (state.done || i < state.exIdx) return 1;
+    if (i > state.exIdx) return 0;
+    if (state.stage === "prep") return 0;
+    if (state.stage === "rest") return 1;
+    const total = workSecs(item);
+    if (total <= 0) return 1;
+    const one = oneSideSecs(item);
+    let done = 0;
+    if (state.stage === "work") done = state.t;
+    else if (state.stage === "switch") done = one;
+    else if (state.stage === "work2") done = one + SWITCH_SECS + state.t;
+    return Math.min(1, Math.max(0, done / total));
+  });
+}
+
 /** Seconds elapsed across the whole session — drives the top progress bar. */
 export function sessionElapsed(state: SessionState, items: DayItem[]): number {
   const item = items[state.exIdx];

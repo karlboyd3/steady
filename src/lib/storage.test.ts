@@ -155,6 +155,57 @@ describe("corruption / validation fallback", () => {
   });
 });
 
+describe("v1 → v2 migration (species)", () => {
+  it("migrates a real v1 user to turtle, already-chosen, preserving name/coins/owned", () => {
+    localStorage.setItem(
+      storageKey("default"),
+      JSON.stringify({
+        version: 1,
+        petName: "Shelby",
+        coins: 40,
+        owned: ["crown", "meadow"],
+        equipped: { hat: "crown", face: null, neck: null, chest: null, bg: "meadow" },
+        completed: [1, 2, 3],
+        streak: 3,
+      })
+    );
+    const loaded = load("default");
+    expect(loaded.version).toBe(SCHEMA_VERSION);
+    expect(loaded.species).toBe("turtle");
+    expect(loaded.speciesChosen).toBe(true);
+    expect(loaded.petName).toBe("Shelby");
+    expect(loaded.coins).toBe(40);
+    expect(loaded.owned).toEqual(["crown", "meadow"]);
+  });
+
+  it("a genuinely fresh install is not chosen yet, and seeds from a tenant default", () => {
+    const loaded = load("unknown-slug", "fox");
+    expect(loaded.speciesChosen).toBe(false);
+    expect(loaded.species).toBe("fox");
+  });
+
+  it("a fresh install with no tenant default falls back to turtle", () => {
+    const loaded = load("unknown-slug");
+    expect(loaded.speciesChosen).toBe(false);
+    expect(loaded.species).toBe("turtle");
+  });
+
+  it("coerces an invalid stored species back to turtle", () => {
+    localStorage.setItem(
+      storageKey("default"),
+      JSON.stringify({ ...defaultState(), species: "dragon" })
+    );
+    expect(load("default").species).toBe("turtle");
+  });
+
+  it("a v2 user's own species and speciesChosen are preserved as-is", () => {
+    saveNow("default", { ...defaultState(), species: "bear", speciesChosen: true });
+    const loaded = load("default", "fox"); // tenant default must not override a real user
+    expect(loaded.species).toBe("bear");
+    expect(loaded.speciesChosen).toBe(true);
+  });
+});
+
 describe("date-aware streak", () => {
   it("first-ever completion starts a streak of 1", () => {
     expect(nextStreak(0, null, "2026-07-08")).toBe(1);

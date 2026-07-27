@@ -125,33 +125,6 @@ export function HomeScreen({
         </div>
       </div>
 
-      <div className="card">
-        <div className="section-label" style={{ marginTop: 0 }}>
-          Today&apos;s lineup
-        </div>
-        {items.map((it, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "9px 2px",
-              borderBottom:
-                i < items.length - 1 ? "1px solid var(--line)" : "none",
-              fontSize: 17,
-            }}
-          >
-            <span>
-              {it.ex.name}
-              {it.ex.perLeg ? " (each leg)" : ""}
-            </span>
-            <span style={{ color: "var(--ink-soft)", fontWeight: 700 }}>
-              {it.ex.type === "reps" ? `${it.reps} reps` : `${it.secs}s hold`}
-            </span>
-          </div>
-        ))}
-      </div>
-
       <p className="footer-note">
         This program offers general strengthening exercises and is not medical
         advice. If you&apos;re recovering from surgery or injury, follow your

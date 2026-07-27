@@ -14,6 +14,18 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
  * user-supplied HTML, so the XSS surface is minimal. 'unsafe-eval' is NOT
  * allowed.
  */
+const isDev = process.env.NODE_ENV === "development";
+
+// Next.js dev mode (Fast Refresh/HMR) evaluates code via eval(), so the
+// strict script-src is relaxed with 'unsafe-eval' only in development.
+// Production builds keep the exact same value as before — no 'unsafe-eval'.
+//
+// connect-src is intentionally left at 'self' in both environments: the
+// Fast Refresh HMR client connects via WebSocket to the same host/port as
+// the page itself (ws://<host> derived from location.host), and per the
+// CSP3 scheme-matching algorithm, 'self' already covers the same-origin
+// ws:/wss: companion of the page's http:/https: scheme in every current
+// browser — no explicit ws://localhost:* entry is needed.
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -23,7 +35,7 @@ const csp = [
   "img-src 'self' data: blob:",
   "font-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "connect-src 'self'",
   "worker-src 'self'",
   "manifest-src 'self'",

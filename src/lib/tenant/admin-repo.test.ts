@@ -63,6 +63,7 @@ const FORM_VALUES: TenantFormValues = {
   contactEmail: null,
   customDomain: null,
   active: true,
+  defaultSpecies: "turtle",
 };
 
 beforeEach(() => {
@@ -129,6 +130,7 @@ describe("getTenantForAdmin", () => {
       mascotEnabled: true,
       welcomeMessage: null,
       contactEmail: null,
+      defaultSpecies: "turtle",
       customDomain: "acme.example.com",
       active: true,
     });

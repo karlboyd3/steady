@@ -6,6 +6,40 @@ export type Slot = "hat" | "face" | "neck" | "chest" | "bg";
 
 export type Equipped = Record<Slot, string | null>;
 
+export type Species = "turtle" | "fox" | "dog" | "cat" | "rabbit" | "bear";
+
+export interface SpeciesInfo {
+  id: Species;
+  label: string;
+  emoji: string;
+}
+
+export const SPECIES: SpeciesInfo[] = [
+  { id: "turtle", label: "Turtle", emoji: "🐢" },
+  { id: "fox", label: "Fox", emoji: "🦊" },
+  { id: "dog", label: "Dog", emoji: "🐶" },
+  { id: "cat", label: "Cat", emoji: "🐱" },
+  { id: "rabbit", label: "Rabbit", emoji: "🐰" },
+  { id: "bear", label: "Bear", emoji: "🐻" },
+];
+
+const SPECIES_IDS = SPECIES.map((s) => s.id);
+
+export function isSpecies(v: unknown): v is Species {
+  return typeof v === "string" && (SPECIES_IDS as string[]).includes(v);
+}
+
+/** 3D attachment socket a given cosmetic slot maps to. `bg` items are scene
+ * backdrops, not body attachments, so they have no socket. */
+export type Socket = "head" | "face" | "neck" | "chest";
+
+export const SOCKET_FOR_SLOT: Partial<Record<Slot, Socket>> = {
+  hat: "head",
+  face: "face",
+  neck: "neck",
+  chest: "chest",
+};
+
 export interface Item {
   id: string;
   name: string;

@@ -73,6 +73,7 @@ describe("getTenant", () => {
       mascotEnabled: false,
       welcomeMessage: "Welcome!",
       contactEmail: "hi@acme.example",
+      defaultSpecies: "turtle",
     });
     expect(fromMock).toHaveBeenCalledWith("tenants");
     expect(eqMock).toHaveBeenCalledWith("slug", "acme-pt");

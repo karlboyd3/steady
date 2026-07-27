@@ -4,6 +4,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { DEFAULT_TENANT, type TenantConfig } from "./types";
+import { isSpecies } from "@/lib/rewards";
 
 /** Service-role Supabase client. Shared with the admin CRUD layer (admin-repo.ts). */
 export function supabase() {
@@ -27,6 +28,7 @@ export interface TenantRow {
   mascot_enabled: boolean;
   welcome_message: string | null;
   contact_email: string | null;
+  default_species: string | null;
 }
 
 export function mapRow(d: TenantRow): TenantConfig {
@@ -45,6 +47,8 @@ export function mapRow(d: TenantRow): TenantConfig {
     mascotEnabled: d.mascot_enabled,
     welcomeMessage: d.welcome_message,
     contactEmail: d.contact_email,
+    // Tenants created before this column existed read back as null.
+    defaultSpecies: isSpecies(d.default_species) ? d.default_species : "turtle",
   };
 }
 

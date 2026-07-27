@@ -9,6 +9,7 @@ import {
   back,
   beginWork2,
   sessionElapsed,
+  exerciseProgressFractions,
   type SessionState,
 } from "./session-engine";
 import { PREP_SECS, REST_SECS, SWITCH_SECS } from "./tracks";
@@ -154,5 +155,40 @@ describe("sessionElapsed", () => {
   it("includes the finished first exercise + its rest when on exercise 2", () => {
     const s: SessionState = { exIdx: 1, stage: "prep", t: 0, done: false };
     expect(sessionElapsed(s, items)).toBe(PREP_SECS + 12 + REST_SECS);
+  });
+});
+
+describe("exerciseProgressFractions", () => {
+  it("is all zeros at the very start", () => {
+    const items = [nonPerLeg(2), nonPerLeg(2)];
+    expect(exerciseProgressFractions(initialState, items)).toEqual([0, 0]);
+  });
+  it("is 0 during prep, partial mid-work, 1 during rest", () => {
+    const items = [nonPerLeg(2)]; // work = 12s
+    expect(
+      exerciseProgressFractions({ exIdx: 0, stage: "prep", t: 3, done: false }, items)
+    ).toEqual([0]);
+    expect(
+      exerciseProgressFractions({ exIdx: 0, stage: "work", t: 6, done: false }, items)[0]
+    ).toBeCloseTo(0.5, 5);
+    expect(
+      exerciseProgressFractions({ exIdx: 0, stage: "rest", t: 1, done: false }, items)
+    ).toEqual([1]);
+  });
+  it("accounts for perLeg work + switch when computing the fraction", () => {
+    const items = [perLeg(2)]; // one side = 10s, total workSecs = 10*2 + SWITCH_SECS
+    const total = 10 * 2 + SWITCH_SECS;
+    const s: SessionState = { exIdx: 0, stage: "work2", t: 3, done: false };
+    expect(exerciseProgressFractions(s, items)[0]).toBeCloseTo((10 + SWITCH_SECS + 3) / total, 5);
+  });
+  it("marks earlier exercises complete and later ones untouched", () => {
+    const items = [nonPerLeg(2), nonPerLeg(2), nonPerLeg(2)];
+    const s: SessionState = { exIdx: 1, stage: "work", t: 0, done: false };
+    expect(exerciseProgressFractions(s, items)).toEqual([1, 0, 0]);
+  });
+  it("is all 1s once done", () => {
+    const items = [nonPerLeg(2), nonPerLeg(2)];
+    const s: SessionState = { exIdx: 1, stage: "work", t: 5, done: true };
+    expect(exerciseProgressFractions(s, items)).toEqual([1, 1]);
   });
 });

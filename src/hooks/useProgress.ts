@@ -21,15 +21,21 @@ import {
   coinsForCompletion,
   petLevel,
   type Item,
+  type Species,
 } from "@/lib/rewards";
 
-export function useProgress(slug: string) {
-  const [state, setState] = useState<SteadyState>(defaultState);
+export function useProgress(slug: string, defaultSpecies?: Species) {
+  const [state, setState] = useState<SteadyState>(() => defaultState(defaultSpecies));
   const [hydrated, setHydrated] = useState(false);
+
+  // Read via a ref so a tenant-config refresh never re-triggers the load
+  // effect below — the default must only ever seed a fresh install once.
+  const defaultSpeciesRef = useRef(defaultSpecies);
+  defaultSpeciesRef.current = defaultSpecies;
 
   // Load persisted state once, on the client, after mount.
   useEffect(() => {
-    setState(load(slug));
+    setState(load(slug, defaultSpeciesRef.current));
     setHydrated(true);
   }, [slug]);
 
@@ -93,6 +99,11 @@ export function useProgress(slug: string) {
     [patch]
   );
 
+  const setSpecies = useCallback(
+    (species: Species) => patch({ species, speciesChosen: true }),
+    [patch]
+  );
+
   const buyItem = useCallback(
     (item: Item) =>
       setState((prev) => ({
@@ -153,6 +164,7 @@ export function useProgress(slug: string) {
     toggleSound,
     setSoundOn,
     setPetName,
+    setSpecies,
     buyItem,
     equipItem,
     finishDay,

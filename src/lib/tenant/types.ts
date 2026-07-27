@@ -5,6 +5,8 @@
    (see get-tenant.ts / layout.tsx) and always renders pixel-identical.
    ============================================================ */
 
+import type { Species } from "@/lib/rewards";
+
 export interface TenantConfig {
   slug: string;
   clinicName: string;
@@ -20,6 +22,9 @@ export interface TenantConfig {
   mascotEnabled: boolean;
   welcomeMessage: string | null;
   contactEmail: string | null;
+  /** Species a brand-new user's pet defaults to. Falls back to "turtle"
+   * when unset; never overrides a user's own later choice. */
+  defaultSpecies: Species;
 }
 
 export const SLUG_PATTERN = /^[a-z0-9-]{2,32}$/;
@@ -41,4 +46,5 @@ export const DEFAULT_TENANT: TenantConfig = {
   mascotEnabled: true,
   welcomeMessage: null,
   contactEmail: null,
+  defaultSpecies: "turtle",
 };

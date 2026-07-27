@@ -75,6 +75,7 @@ function toRow(v: TenantFormValues) {
     contact_email: v.contactEmail,
     custom_domain: v.customDomain,
     active: v.active,
+    default_species: v.defaultSpecies,
   };
 }
 

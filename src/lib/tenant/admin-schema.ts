@@ -6,6 +6,9 @@
 
 import { z } from "zod";
 import { SLUG_PATTERN, HEX_COLOR_PATTERN, RESERVED_SLUGS } from "./types";
+import { SPECIES, type Species } from "@/lib/rewards";
+
+const speciesIds = SPECIES.map((s) => s.id) as [Species, ...Species[]];
 
 const optionalHttpsUrl = z
   .string()
@@ -55,6 +58,7 @@ export const tenantFormSchema = z.object({
   contactEmail: optionalEmail,
   customDomain: optionalString,
   active: z.boolean(),
+  defaultSpecies: z.enum(speciesIds),
 });
 
 export type TenantFormValues = z.infer<typeof tenantFormSchema>;
@@ -75,6 +79,7 @@ export function tenantFormValuesFromFormData(formData: FormData): Record<string,
     contactEmail: String(formData.get("contactEmail") ?? ""),
     customDomain: String(formData.get("customDomain") ?? ""),
     active: formData.get("active") === "on",
+    defaultSpecies: String(formData.get("defaultSpecies") ?? "turtle"),
   };
 }
 
