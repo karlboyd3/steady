@@ -1,33 +1,29 @@
 "use client";
 
 /* ============================================================
-   Probes for a real /public/models/{species}.glb the same way
-   ExerciseAnimation.tsx probes for a real Lottie file: try fetching
-   it, branch render on success/failure. A HEAD request (not GET) is
-   enough here since, unlike the Lottie JSON, we never need the body —
-   useGLTF re-fetches it for the actual load once this resolves true.
+   Drop-in path helpers + availability probes for the optional .glb
+   assets. Both wrap useGlbAvailable; the path builders are exported
+   so the preloader (usePetPreload.ts) and the loaders themselves stay
+   in sync with a single definition of where assets live.
    ============================================================ */
 
-import { useEffect, useState } from "react";
 import type { Species } from "@/lib/rewards";
+import { useGlbAvailable } from "./useGlbAvailable";
 
+export function speciesModelUrl(species: Species): string {
+  return `/models/${species}.glb`;
+}
+
+export function cosmeticModelUrl(itemId: string): string {
+  return `/models/cosmetics/${itemId}.glb`;
+}
+
+/** True once a real model for this species is confirmed to exist. */
 export function useModelAvailable(species: Species): boolean {
-  const [available, setAvailable] = useState(false);
+  return useGlbAvailable(speciesModelUrl(species));
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    setAvailable(false);
-    fetch(`/models/${species}.glb`, { method: "HEAD" })
-      .then((res) => {
-        if (!cancelled) setAvailable(res.ok);
-      })
-      .catch(() => {
-        if (!cancelled) setAvailable(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [species]);
-
-  return available;
+/** True once a real model for this cosmetic item is confirmed to exist. */
+export function useCosmeticModelAvailable(itemId: string): boolean {
+  return useGlbAvailable(cosmeticModelUrl(itemId));
 }

@@ -20,3 +20,16 @@ vi.mock("lottie-react", () => ({
 vi.mock("next/dynamic", () => ({
   default: (loader: () => Promise<{ default: ComponentType<unknown> }>) => lazy(loader),
 }));
+
+// react-three-fiber intrinsics (<mesh>, <torusGeometry>, …) are only
+// meaningful inside <Canvas>, where r3f's own reconciler handles them.
+// Rendering them under jsdom to assert on branch/prop wiring is
+// intentional, but React DOM logs an "unrecognized tag" / "incorrect
+// casing" warning for each one, which drowns out real errors. Filter
+// exactly those two messages and let everything else through.
+const R3F_TAG_WARNING = /(is unrecognized in this browser|is using incorrect casing)/;
+const realConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  if (typeof args[0] === "string" && R3F_TAG_WARNING.test(args[0])) return;
+  realConsoleError(...args);
+};

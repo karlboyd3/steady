@@ -6,8 +6,10 @@ import {
   pickVariantIndex,
   celebrationTransform,
   subduedTransform,
+  resolveClipName,
 } from "./celebrationClips";
 import type { Tier } from "@/lib/celebration";
+import { SPECIES } from "@/lib/rewards";
 
 const TIERS: Tier[] = ["session", "streak", "track"];
 
@@ -55,6 +57,27 @@ describe("subdued transform", () => {
     for (const tier of TIERS) {
       const t = TIER_DURATIONS[tier] / 2;
       expect(celebrationTransform(tier, 0, true, t)).toEqual(subduedTransform(t, TIER_DURATIONS[tier]));
+    }
+  });
+});
+
+describe("resolveClipName", () => {
+  it("resolves idle for a null tier on every species", () => {
+    for (const species of SPECIES.map((s) => s.id)) {
+      expect(resolveClipName(species, null)).toBe(CLIP_NAMES.idle);
+    }
+  });
+
+  it("resolves the tier-specific convention clip when no override exists", () => {
+    for (const tier of TIERS) {
+      expect(resolveClipName("turtle", tier)).toBe(CLIP_NAMES[tier]);
+    }
+  });
+
+  it("is consistent across species while the override table is empty", () => {
+    for (const tier of TIERS) {
+      const names = SPECIES.map((s) => resolveClipName(s.id, tier));
+      expect(new Set(names).size).toBe(1);
     }
   });
 });

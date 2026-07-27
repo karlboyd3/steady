@@ -21,6 +21,8 @@
    ============================================================ */
 
 import type { Tier } from "@/lib/celebration";
+import type { Species } from "@/lib/rewards";
+import { SPECIES_CLIP_OVERRIDES } from "./species-shapes";
 
 export const CLIP_NAMES = {
   idle: "idle",
@@ -28,6 +30,24 @@ export const CLIP_NAMES = {
   streak: "celebrate_streak",
   track: "celebrate_big",
 } as const;
+
+/**
+ * Clip name to play for a species, given a celebration tier (or null for
+ * idle). Falls back to the shared CLIP_NAMES convention unless that species
+ * declares an override in SPECIES_CLIP_OVERRIDES.
+ *
+ * A model shipping only "idle" + "happy" is supported via the `happy`
+ * override, which stands in for all three celebrate tiers; a model
+ * following the full convention needs no override at all. GltfCreature
+ * additionally falls back to idle at runtime if the resolved clip turns
+ * out not to exist on the loaded model, so a wrong guess degrades to a
+ * still pet rather than an error.
+ */
+export function resolveClipName(species: Species, tier: Tier | null): string {
+  const override = SPECIES_CLIP_OVERRIDES[species];
+  if (tier === null) return override?.idle ?? CLIP_NAMES.idle;
+  return override?.happy ?? CLIP_NAMES[tier];
+}
 
 export const TIER_DURATIONS: Record<Tier, number> = {
   session: 1.5,

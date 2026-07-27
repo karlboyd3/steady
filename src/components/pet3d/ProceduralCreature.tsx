@@ -13,7 +13,8 @@
 import { forwardRef, type ReactNode } from "react";
 import type { Group } from "three";
 import type { Socket, Species } from "@/lib/rewards";
-import { CREATURES, SOCKET_OFFSETS, type EarStyle, type TailStyle } from "./species-shapes";
+import { CREATURES, SOCKET_TRANSFORMS, type EarStyle, type TailStyle } from "./species-shapes";
+import { SocketGroup } from "./SocketGroup";
 
 export type AccessorySlots = Partial<Record<Socket, ReactNode>>;
 
@@ -146,7 +147,7 @@ export const ProceduralCreature = forwardRef<
   { species: Species; accessories?: AccessorySlots }
 >(function ProceduralCreature({ species, accessories }, ref) {
   const c = CREATURES[species];
-  const sockets = SOCKET_OFFSETS[species];
+  const sockets = SOCKET_TRANSFORMS[species];
 
   return (
     <group ref={ref}>
@@ -197,18 +198,11 @@ export const ProceduralCreature = forwardRef<
       </mesh>
 
       {/* socket anchors — accessories attach here */}
-      <group name="head" position={sockets.head}>
-        {accessories?.head}
-      </group>
-      <group name="face" position={sockets.face}>
-        {accessories?.face}
-      </group>
-      <group name="neck" position={sockets.neck}>
-        {accessories?.neck}
-      </group>
-      <group name="chest" position={sockets.chest}>
-        {accessories?.chest}
-      </group>
+      {(["head", "face", "neck", "chest"] as Socket[]).map((socket) => (
+        <SocketGroup key={socket} transform={sockets[socket]}>
+          {accessories?.[socket]}
+        </SocketGroup>
+      ))}
     </group>
   );
 });

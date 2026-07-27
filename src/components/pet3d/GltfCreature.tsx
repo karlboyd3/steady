@@ -29,8 +29,9 @@ import { useAnimations } from "@react-three/drei/core/useAnimations";
 import type { Group, Object3D } from "three";
 import type { Socket, Species } from "@/lib/rewards";
 import type { Tier } from "@/lib/celebration";
-import { SOCKET_OFFSETS } from "./species-shapes";
-import { CLIP_NAMES } from "./celebrationClips";
+import { SOCKET_TRANSFORMS } from "./species-shapes";
+import { CLIP_NAMES, resolveClipName } from "./celebrationClips";
+import { SocketGroup } from "./SocketGroup";
 import type { AccessorySlots } from "./ProceduralCreature";
 
 export function GltfCreature({
@@ -45,34 +46,40 @@ export function GltfCreature({
   const { scene, animations, nodes } = useGLTF(`/models/${species}.glb`);
   const groupRef = useRef<Group>(null);
   const { actions } = useAnimations(animations, groupRef);
-  const fallbackSockets = SOCKET_OFFSETS[species];
+  const sockets = SOCKET_TRANSFORMS[species];
 
   const tier = celebration?.tier;
   const subdued = celebration?.subdued ?? false;
   useEffect(() => {
-    const clipName = !tier || subdued ? CLIP_NAMES.idle : CLIP_NAMES[tier];
+    // Subdued celebrations deliberately stay on idle — see celebration.ts.
+    const clipName = resolveClipName(species, !tier || subdued ? null : tier);
     const action = actions[clipName] ?? actions[CLIP_NAMES.idle];
     if (!action) return;
     action.reset().fadeIn(0.2).play();
     return () => {
       action.fadeOut(0.2);
     };
-  }, [tier, subdued, actions]);
+  }, [species, tier, subdued, actions]);
 
-  const socketPosition = (socket: Socket): [number, number, number] => {
-    const node = (nodes as Record<string, Object3D>)[socket];
-    return node
-      ? [node.position.x, node.position.y, node.position.z]
-      : fallbackSockets[socket];
+  /** The bone's own position when the model declares it, else undefined so
+   * SocketGroup falls back to the configured placeholder offset. */
+  const bonePosition = (socket: Socket): [number, number, number] | undefined => {
+    const node = (nodes as Record<string, Object3D>)[sockets[socket].boneName];
+    return node ? [node.position.x, node.position.y, node.position.z] : undefined;
   };
 
   return (
     <group ref={groupRef}>
       <primitive object={scene} />
-      <group position={socketPosition("head")}>{accessories?.head}</group>
-      <group position={socketPosition("face")}>{accessories?.face}</group>
-      <group position={socketPosition("neck")}>{accessories?.neck}</group>
-      <group position={socketPosition("chest")}>{accessories?.chest}</group>
+      {(["head", "face", "neck", "chest"] as Socket[]).map((socket) => (
+        <SocketGroup
+          key={socket}
+          transform={sockets[socket]}
+          position={bonePosition(socket)}
+        >
+          {accessories?.[socket]}
+        </SocketGroup>
+      ))}
     </group>
   );
 }

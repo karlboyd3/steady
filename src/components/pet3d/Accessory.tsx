@@ -1,18 +1,27 @@
 "use client";
 
 /* ============================================================
-   Accessory — primitive-built cosmetic meshes, one per catalog item
-   (src/lib/rewards.ts ITEMS). Rendered as a child of whichever socket
-   group the item's slot resolves to (see buildAccessorySlots below),
-   so the same mesh works unmodified on every species' silhouette.
+   Accessory — one cosmetic item, rendered as a child of whichever
+   socket group its slot resolves to (see buildAccessorySlots below).
+   The socket group carries the species-specific offset/rotation/scale,
+   so a single cosmetic works unmodified on every species' silhouette.
+
+   Drop a real /public/models/cosmetics/{itemId}.glb in and it activates
+   with zero code changes (same probe-then-branch convention as species
+   models and /public/animations/); otherwise the hand-built primitive
+   mesh below renders instead. Every catalog item has a primitive, so
+   there is always something to show.
    ============================================================ */
 
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import type { AccessorySlots } from "./ProceduralCreature";
 import type { Equipped } from "@/lib/rewards";
 import { SOCKET_FOR_SLOT, type Slot } from "@/lib/rewards";
+import { useCosmeticModelAvailable } from "./useModelAvailable";
+import { GltfAccessory } from "./GltfAccessory";
 
-export function Accessory({ itemId }: { itemId: string }) {
+/** Hand-built placeholder geometry, one case per catalog item. */
+export function ProceduralAccessory({ itemId }: { itemId: string }) {
   switch (itemId) {
     case "sweatband":
       return (
@@ -71,6 +80,23 @@ export function Accessory({ itemId }: { itemId: string }) {
     default:
       return null;
   }
+}
+
+/**
+ * Renders a real cosmetic .glb when one exists for this item, else the
+ * hand-built primitive. The primitive also serves as the Suspense
+ * fallback while the .glb loads, so an equipped item is never briefly
+ * missing from the pet.
+ */
+export function Accessory({ itemId }: { itemId: string }) {
+  const hasModel = useCosmeticModelAvailable(itemId);
+  const procedural = <ProceduralAccessory itemId={itemId} />;
+  if (!hasModel) return procedural;
+  return (
+    <Suspense fallback={procedural}>
+      <GltfAccessory itemId={itemId} />
+    </Suspense>
+  );
 }
 
 /** Maps the currently-equipped items to their 3D socket, skipping `bg`

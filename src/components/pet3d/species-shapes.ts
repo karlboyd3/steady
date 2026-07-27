@@ -86,6 +86,26 @@ export const CREATURES: Record<Species, CreatureDescriptor> = {
   },
 };
 
+/**
+ * Full attachment transform for one socket on one species.
+ *
+ * `boneName` is the node/bone to look up on a real GLTF model. It defaults
+ * to the socket's own name, which is the documented drop-in convention —
+ * a model authored with nodes literally named "head"/"face"/"neck"/"chest"
+ * needs no config at all. Override it only when a real asset names its
+ * bones differently (e.g. a rigged model using "mixamorig:Head").
+ *
+ * `offset`/`rotation`/`scale` are applied to the socket <group> in both
+ * modes, so they position accessories on the procedural placeholder AND
+ * fine-tune placement on a loaded GLTF.
+ */
+export interface SocketTransform {
+  boneName: string;
+  offset: [number, number, number];
+  rotation: [number, number, number];
+  scale: number;
+}
+
 const BASE_SOCKETS: Record<Socket, [number, number, number]> = {
   head: [0, 1.2, 0.75],
   face: [0, 1.05, 1.05],
@@ -94,29 +114,66 @@ const BASE_SOCKETS: Record<Socket, [number, number, number]> = {
 };
 
 /** Placeholder-mode socket anchors, nudged per species by head/body scale
- * so accessories land close to the right spot on every silhouette. */
-export const SOCKET_OFFSETS: Record<Species, Record<Socket, [number, number, number]>> =
+ * so accessories land close to the right spot on every silhouette. Head and
+ * face accessories also scale with the head so a crown sits right on a
+ * big-headed bear and a small-headed cat alike. */
+export const SOCKET_TRANSFORMS: Record<Species, Record<Socket, SocketTransform>> =
   Object.fromEntries(
     (Object.keys(CREATURES) as Species[]).map((species) => {
       const { headScale, bodyScale } = CREATURES[species];
-      const scaled: Record<Socket, [number, number, number]> = {
-        head: [
-          BASE_SOCKETS.head[0],
-          BASE_SOCKETS.head[1] * headScale,
-          BASE_SOCKETS.head[2] * headScale,
-        ],
-        face: [
-          BASE_SOCKETS.face[0],
-          BASE_SOCKETS.face[1] * headScale,
-          BASE_SOCKETS.face[2] * headScale,
-        ],
-        neck: [BASE_SOCKETS.neck[0], BASE_SOCKETS.neck[1], BASE_SOCKETS.neck[2] * bodyScale[2]],
-        chest: [
-          BASE_SOCKETS.chest[0],
-          BASE_SOCKETS.chest[1],
-          BASE_SOCKETS.chest[2] * bodyScale[2],
-        ],
+      const scaled: Record<Socket, SocketTransform> = {
+        head: {
+          boneName: "head",
+          offset: [
+            BASE_SOCKETS.head[0],
+            BASE_SOCKETS.head[1] * headScale,
+            BASE_SOCKETS.head[2] * headScale,
+          ],
+          rotation: [0, 0, 0],
+          scale: headScale,
+        },
+        face: {
+          boneName: "face",
+          offset: [
+            BASE_SOCKETS.face[0],
+            BASE_SOCKETS.face[1] * headScale,
+            BASE_SOCKETS.face[2] * headScale,
+          ],
+          rotation: [0, 0, 0],
+          scale: headScale,
+        },
+        neck: {
+          boneName: "neck",
+          offset: [
+            BASE_SOCKETS.neck[0],
+            BASE_SOCKETS.neck[1],
+            BASE_SOCKETS.neck[2] * bodyScale[2],
+          ],
+          rotation: [0, 0, 0],
+          scale: 1,
+        },
+        chest: {
+          boneName: "chest",
+          offset: [
+            BASE_SOCKETS.chest[0],
+            BASE_SOCKETS.chest[1],
+            BASE_SOCKETS.chest[2] * bodyScale[2],
+          ],
+          rotation: [0, 0, 0],
+          scale: 1,
+        },
       };
       return [species, scaled];
     })
-  ) as Record<Species, Record<Socket, [number, number, number]>>;
+  ) as Record<Species, Record<Socket, SocketTransform>>;
+
+/**
+ * Per-species animation clip name overrides. Empty today because no real
+ * .glb assets exist yet — every species falls back to the shared defaults
+ * in celebrationClips.ts (CLIP_NAMES). Add an entry here only when a real
+ * model ships with differently-named clips; a model following the
+ * documented "idle"/"celebrate_*" convention needs nothing.
+ */
+export const SPECIES_CLIP_OVERRIDES: Partial<
+  Record<Species, { idle?: string; happy?: string }>
+> = {};

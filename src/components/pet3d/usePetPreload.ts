@@ -17,6 +17,7 @@
 
 import { useEffect } from "react";
 import type { Species } from "@/lib/rewards";
+import { speciesModelUrl } from "./useModelAvailable";
 
 export function usePetPreload(species: Species): void {
   useEffect(() => {
@@ -26,7 +27,7 @@ export function usePetPreload(species: Species): void {
     import("./CelebrationScene").catch(() => {});
 
     // Warm the GLTF cache only if a real model actually exists.
-    const url = `/models/${species}.glb`;
+    const url = speciesModelUrl(species);
     fetch(url, { method: "HEAD" })
       .then((res) => {
         if (cancelled || !res.ok) return;
