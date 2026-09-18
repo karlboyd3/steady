@@ -138,7 +138,7 @@ export function ExerciseDetailSheet({
       </div>
 
       <section>
-        <div className="section-label" style={{ marginTop: 18 }}>
+        <div className="section-label section-label-spaced">
           Instructions
         </div>
         <ol className="detail-list">

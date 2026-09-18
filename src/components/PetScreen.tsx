@@ -73,27 +73,19 @@ export function PetScreen({
 
       {showSpeciesStep ? (
         <div className="card">
-          <div className="section-label" style={{ margin: "0 0 10px" }}>
+          <div className="section-label section-label-flush">
             Choose your buddy
           </div>
-          <p style={{ fontSize: 15, color: "var(--ink-soft)", marginBottom: 12 }}>
+          <p className="pet-hint pet-hint-above">
             Pick a companion to keep you company through the program. You can change this
             later.
           </p>
           <SpeciesGrid onPick={setSpecies} />
         </div>
       ) : (
-        <div className="card" style={{ textAlign: "center" }}>
+        <div className="card pet-hero-card">
           <ProgressCompanion equipped={equipped} size={230} name={petName} variant="hero" />
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              justifyContent: "center",
-              alignItems: "center",
-              marginTop: 8,
-            }}
-          >
+          <div className="pet-name-edit">
             <input
               className="pet-name"
               value={petName}
@@ -102,13 +94,12 @@ export function PetScreen({
             />
             <span className="level-pill">Lv {level}</span>
           </div>
-          <p style={{ fontSize: 15, color: "var(--ink-soft)", marginTop: 8 }}>
+          <p className="pet-hint">
             {petName || "Your buddy"} levels up every 5 sessions you finish.
           </p>
           {tenant.mascotEnabled && (
             <button
-              className="ci-btn"
-              style={{ marginTop: 10, width: "auto", padding: "8px 16px" }}
+              className="ci-btn ci-btn-inline"
               onClick={() => setPickerOpen(true)}
             >
               Change species
@@ -145,7 +136,7 @@ export function PetScreen({
       </div>
 
       <BottomSheet open={pickerOpen} onClose={() => setPickerOpen(false)} ariaLabel="Choose your buddy">
-        <div className="section-label" style={{ margin: "0 0 10px" }}>
+        <div className="section-label section-label-flush">
           Choose your buddy
         </div>
         <SpeciesGrid

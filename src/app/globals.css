@@ -154,7 +154,7 @@ input:focus-visible {
 .brand {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: var(--s-3);
   margin: 6px 0 2px;
 }
 .brand h1 {
@@ -177,7 +177,7 @@ input:focus-visible {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 22px;
+  padding: var(--s-6);
   margin-bottom: 20px;
 }
 .today-card {
@@ -204,7 +204,7 @@ input:focus-visible {
 .big-btn {
   display: block;
   width: 100%;
-  padding: 20px;
+  padding: var(--s-5);
   border-radius: var(--r-md);
   background: var(--amber);
   color: var(--on-amber);
@@ -230,7 +230,7 @@ input:focus-visible {
 }
 .phase-row {
   display: flex;
-  gap: 8px;
+  gap: var(--s-2);
   margin-bottom: 10px;
 }
 .phase-chip {
@@ -280,7 +280,7 @@ input:focus-visible {
 }
 .stat-row {
   display: flex;
-  gap: 10px;
+  gap: var(--s-3);
 }
 .stat {
   flex: 1;
@@ -329,7 +329,7 @@ input:focus-visible {
 }
 .segbar {
   display: flex;
-  gap: 4px;
+  gap: var(--s-1);
   margin-bottom: 16px;
 }
 .segbar-seg {
@@ -349,7 +349,7 @@ input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--s-2);
   margin: 2px 0 4px;
 }
 .ex-name-row .ex-name {
@@ -440,7 +440,7 @@ input:focus-visible {
 
 .controls {
   display: flex;
-  gap: 10px;
+  gap: var(--s-3);
   margin-top: 16px;
 }
 .ctrl {
@@ -510,11 +510,11 @@ input:focus-visible {
 .pain-btns {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--s-3);
   margin-top: 12px;
 }
 .pain-btn {
-  padding: 16px;
+  padding: var(--s-4);
   border-radius: var(--r-md);
   font-size: var(--text-lg);
   font-weight: 700;
@@ -559,7 +559,7 @@ input:focus-visible {
   background: var(--card);
   border: 2px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 18px;
+  padding: var(--s-5);
   margin-bottom: 12px;
 }
 .level-card:hover {
@@ -571,7 +571,7 @@ input:focus-visible {
 .level-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--s-3);
   margin-bottom: 6px;
 }
 .level-emoji {
@@ -596,7 +596,7 @@ input:focus-visible {
   display: block;
   width: 100%;
   margin-top: 10px;
-  padding: 14px;
+  padding: var(--s-4);
   border-radius: var(--r-sm);
   background: var(--pine-tint);
   color: var(--pine-deep);
@@ -631,7 +631,7 @@ input:focus-visible {
 }
 .pet-card {
   display: flex;
-  gap: 16px;
+  gap: var(--s-4);
   align-items: center;
   width: 100%;
   text-align: left;
@@ -647,7 +647,7 @@ input:focus-visible {
   font-size: var(--text-xl);
   font-weight: 700;
   display: flex;
-  gap: 8px;
+  gap: var(--s-2);
   align-items: center;
   color: var(--ink);
 }
@@ -672,7 +672,7 @@ input:focus-visible {
 .closet-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: var(--s-3);
 }
 .closet-item {
   background: var(--card);
@@ -734,7 +734,7 @@ input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: var(--s-5);
   z-index: 50;
 }
 .modal {
@@ -891,7 +891,7 @@ input:focus-visible {
 .admin-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--s-4);
 }
 .admin-field {
   display: flex;
@@ -912,7 +912,7 @@ input:focus-visible {
   padding: 10px 12px;
 }
 .admin-field input[type="color"] {
-  padding: 4px;
+  padding: var(--s-1);
   height: 40px;
 }
 .admin-field textarea {
@@ -922,12 +922,12 @@ input:focus-visible {
 .admin-color-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 14px;
+  gap: var(--s-4);
 }
 .admin-checkbox {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--s-3);
   font-size: var(--text-base);
   font-weight: 700;
 }
@@ -1040,8 +1040,8 @@ input:focus-visible {
   display: flex;
   background: var(--bg);
   border-radius: var(--r-md);
-  padding: 4px;
-  gap: 4px;
+  padding: var(--s-1);
+  gap: var(--s-1);
 }
 .segmented-btn {
   flex: 1;
@@ -1063,7 +1063,7 @@ input:focus-visible {
 .stepper {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--s-4);
 }
 .stepper-btn {
   width: 44px;
@@ -1141,7 +1141,7 @@ input:focus-visible {
 .bodymap-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--s-2);
   margin-top: 14px;
   justify-content: center;
 }
@@ -1182,7 +1182,7 @@ input:focus-visible {
 }
 .overview-row {
   display: flex;
-  gap: 8px;
+  gap: var(--s-2);
 }
 .overview-stat {
   flex: 1;
@@ -1204,13 +1204,13 @@ input:focus-visible {
 .overview-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--s-2);
   margin-bottom: 18px;
 }
 .overview-row-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--s-3);
   width: 100%;
   background: var(--card);
   border: 1px solid var(--line);
@@ -1251,7 +1251,7 @@ input:focus-visible {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--s-3);
   margin-bottom: 14px;
 }
 .detail-name {
@@ -1274,7 +1274,7 @@ input:focus-visible {
   margin: 0 auto;
   background: var(--pine-tint);
   border-radius: var(--r-lg);
-  padding: 10px;
+  padding: var(--s-3);
 }
 .detail-row {
   display: flex;
@@ -1307,7 +1307,7 @@ input:focus-visible {
   margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--s-3);
 }
 .mistake-list li {
   font-size: var(--text-base);
@@ -1324,7 +1324,7 @@ input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--s-3);
   margin-bottom: 12px;
 }
 .detail-counter {
@@ -1365,3 +1365,72 @@ input:focus-visible {
   border: none;
 }
 
+
+/* ============================================================
+   Component classes replacing one-off inline styles. Extracted so
+   the values sit on the same scales as everything else and so a
+   tenant theme reaches them (the rest label used to be a hardcoded
+   slate hex that ignored --rest entirely).
+   ============================================================ */
+
+.section-label-flush {
+  margin: 0 0 var(--s-3);
+}
+.section-label-spaced {
+  margin-top: var(--s-5);
+}
+
+/* ---- SessionPlayer stage internals ---- */
+.rest-label {
+  color: var(--on-rest-tint);
+  margin-top: 0;
+}
+.switch-big {
+  color: var(--pine);
+}
+.stage-anim {
+  margin: 0 auto;
+}
+.stage-anim-next {
+  width: 170px;
+  height: 170px;
+  margin-top: 6px;
+}
+.stage-anim-prep {
+  width: 240px;
+  height: 240px;
+}
+.ring-figure {
+  width: 158px;
+  height: 158px;
+}
+.count-big-inline {
+  font-size: var(--text-display-sm);
+  margin-top: -6px;
+}
+
+/* ---- PetScreen ---- */
+.pet-hero-card {
+  text-align: center;
+}
+.pet-name-edit {
+  display: flex;
+  gap: var(--s-2);
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--s-2);
+}
+.pet-hint {
+  font-size: var(--text-base);
+  color: var(--ink-soft);
+  margin-top: var(--s-2);
+}
+.pet-hint-above {
+  margin-top: 0;
+  margin-bottom: var(--s-3);
+}
+.ci-btn-inline {
+  width: auto;
+  margin-top: var(--s-3);
+  padding: var(--s-2) var(--s-4);
+}

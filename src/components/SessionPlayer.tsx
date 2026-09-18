@@ -190,18 +190,13 @@ export function SessionPlayer({
 
       {st.stage === "rest" ? (
         <div className="stage-card rest">
-          <div
-            className="section-label"
-            style={{ color: "#3A5875", marginTop: 0 }}
-          >
-            Rest &amp; reset
-          </div>
+          <div className="section-label rest-label">Rest &amp; reset</div>
           <div className="rest-big" aria-live="polite" aria-atomic="true">
             {Math.ceil(dur - st.t)}
           </div>
           <div className="next-label">Up next</div>
           <div className="next-name">{nextItem.ex.name}</div>
-          <div style={{ width: 170, height: 170, margin: "6px auto 0" }}>
+          <div className="stage-anim stage-anim-next">
             <ExerciseAnimation exerciseId={nextItem.id} />
           </div>
           <div className="controls">
@@ -219,12 +214,7 @@ export function SessionPlayer({
       ) : st.stage === "switch" ? (
         <div className="stage-card prep">
           <div className="ex-name display">Switch legs</div>
-          <div
-            className="rest-big"
-            style={{ color: "var(--pine)" }}
-            aria-live="polite"
-            aria-atomic="true"
-          >
+          <div className="rest-big switch-big" aria-live="polite" aria-atomic="true">
             {Math.ceil(dur - st.t)}
           </div>
           <p className="ex-cue">
@@ -262,7 +252,7 @@ export function SessionPlayer({
           </p>
 
           {st.stage === "prep" ? (
-            <div style={{ width: 240, height: 240, margin: "0 auto" }}>
+            <div className="stage-anim stage-anim-prep">
               <ExerciseAnimation exerciseId={item.id} />
             </div>
           ) : (
@@ -270,15 +260,10 @@ export function SessionPlayer({
               frac={frac}
               color={ex.type === "reps" ? "var(--pine)" : "var(--amber)"}
             >
-              <div style={{ width: 158, height: 158 }}>
+              <div className="ring-figure">
                 <Figure exercise={ex} t={poseT} />
               </div>
-              <div
-                className="count-big"
-                style={{ fontSize: 34, marginTop: -6 }}
-                aria-live="polite"
-                aria-atomic="true"
-              >
+              <div className="count-big count-big-inline" aria-live="polite" aria-atomic="true">
                 {big}
               </div>
               <div className="count-sub">{sub}</div>
