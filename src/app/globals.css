@@ -146,9 +146,23 @@ button {
 }
 button:focus-visible,
 a:focus-visible,
-input:focus-visible {
-  outline: 3px solid var(--pine);
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* A --pine ring on a --pine surface is invisible, which left the app's
+   primary CTA with no keyboard focus indicator at all. Anything sitting on
+   a pine fill switches to the light ring. */
+.today-card button:focus-visible,
+.overview-hero button:focus-visible,
+.day-dot.done:focus-visible,
+.ctrl.primary:focus-visible,
+.toast:focus-visible {
+  outline-color: var(--focus-on-dark);
 }
 
 .brand {
@@ -525,9 +539,6 @@ input:focus-visible {
   padding-left: 18px;
   min-height: 48px;
 }
-.pain-btn:hover {
-  border-color: var(--pine);
-}
 .alert {
   background: var(--danger-tint);
   border: 1.5px solid var(--line-danger-tint);
@@ -561,9 +572,6 @@ input:focus-visible {
   border-radius: var(--r-lg);
   padding: var(--s-5);
   margin-bottom: 12px;
-}
-.level-card:hover {
-  border-color: var(--pine);
 }
 .level-card:active {
   transform: scale(0.99);
@@ -637,9 +645,6 @@ input:focus-visible {
   text-align: left;
   font-family: inherit;
 }
-.pet-card:hover {
-  border-color: var(--pine);
-}
 .pet-info {
   flex: 1;
 }
@@ -707,10 +712,6 @@ input:focus-visible {
 .ci-btn.buy {
   background: var(--amber-tint);
   color: var(--on-amber-tint);
-}
-.ci-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 .pet-name {
   font-size: var(--text-lg);
@@ -1078,10 +1079,6 @@ input:focus-visible {
   justify-content: center;
   line-height: 1;
 }
-.stepper-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
 .stepper-value {
   min-width: 40px;
   text-align: center;
@@ -1433,4 +1430,44 @@ input:focus-visible {
   width: auto;
   margin-top: var(--s-3);
   padding: var(--s-2) var(--s-4);
+}
+
+
+/* ============================================================
+   Interaction states — one definition each, so a disabled button
+   looks the same wherever it appears.
+   ============================================================ */
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* Suppress the press-scale feedback when the control can't be pressed. */
+button:disabled:active {
+  transform: none;
+}
+
+/* Hover affordances only where a real pointer exists — on touch these
+   stick after a tap and read as a stuck selection. */
+@media (hover: hover) {
+  .pain-btn:hover,
+  .level-card:hover,
+  .pet-card:hover,
+  .overview-row-btn:hover {
+    border-color: var(--pine);
+  }
+}
+
+/* ---- Empty state: a day-one user has no numbers worth emphasising ----
+   Zeroed stats drop to the muted ink so "not started yet" reads
+   differently from a real streak, without changing any copy. */
+.stat.is-empty .n {
+  color: var(--ink-soft);
+  opacity: 0.55;
+}
+
+/* ---- Loading / pending ---- */
+.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
 }

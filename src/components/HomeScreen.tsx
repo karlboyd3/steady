@@ -69,11 +69,11 @@ export function HomeScreen({
 
       <div className="card">
         <div className="stat-row">
-          <div className="stat">
+          <div className={completedCount === 0 ? "stat is-empty" : "stat"}>
             <div className="n">{completedCount}</div>
             <div className="l">days done</div>
           </div>
-          <div className="stat">
+          <div className={streak === 0 ? "stat is-empty" : "stat"}>
             <div className="n">{streak}</div>
             <div className="l">day streak</div>
           </div>

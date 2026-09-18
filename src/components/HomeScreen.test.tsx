@@ -43,3 +43,40 @@ describe("HomeScreen (default tenant)", () => {
     expect(screen.getByRole("img", { name: /turtle/i })).toBeInTheDocument();
   });
 });
+
+describe("HomeScreen empty state", () => {
+  function statFor(label: string): HTMLElement {
+    const stat = screen.getByText(label).closest(".stat");
+    if (!stat) throw new Error(`no .stat wrapper for "${label}"`);
+    return stat as HTMLElement;
+  }
+
+  it("marks the zeroed stats as empty for a brand-new user", () => {
+    render(
+      <HomeScreen
+        {...baseProps()}
+        completedSet={new Set()}
+        completedCount={0}
+        streak={0}
+        selectedDay={1}
+        currentDay={1}
+      />
+    );
+    expect(statFor("days done")).toHaveClass("is-empty");
+    expect(statFor("day streak")).toHaveClass("is-empty");
+    // "to go" is 30, a real number even on day one, so it stays emphasised.
+    expect(statFor("to go")).not.toHaveClass("is-empty");
+  });
+
+  it("does not mark stats empty once there is progress", () => {
+    render(<HomeScreen {...baseProps()} />);
+    expect(statFor("days done")).not.toHaveClass("is-empty");
+    expect(statFor("day streak")).not.toHaveClass("is-empty");
+  });
+
+  it("marks only the streak empty when a streak is broken but days are done", () => {
+    render(<HomeScreen {...baseProps()} streak={0} />);
+    expect(statFor("days done")).not.toHaveClass("is-empty");
+    expect(statFor("day streak")).toHaveClass("is-empty");
+  });
+});
