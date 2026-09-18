@@ -22,7 +22,7 @@ Next.js 15 (App Router), React 19, TypeScript, Supabase (Postgres), react-three-
 
 ## Testing
 
-301 tests across 33 test files cover the session engine, rewards, storage migration, tenant resolution, middleware, and UI components.
+333 tests across 34 test files cover the session engine, rewards, storage migration, tenant resolution, middleware, and UI components.
 
 ```bash
 npm ci

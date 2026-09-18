@@ -24,6 +24,7 @@ vi.mock("@/lib/tenant/admin-repo", () => ({
 }));
 
 import { login, logout, createTenantAction, updateTenantAction } from "./actions";
+import { verifyAdminSession, SESSION_MAX_AGE_SECONDS } from "@/lib/admin-session";
 
 const ORIGINAL_ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
@@ -57,15 +58,55 @@ describe("login", () => {
     expect(cookiesSetMock).not.toHaveBeenCalled();
   });
 
-  it("sets an httpOnly cookie and redirects on a correct password", async () => {
+  it("rejects a password that is a prefix of the token", async () => {
+    process.env.ADMIN_TOKEN = "secret";
+    const result = await login({ error: null }, formData({ password: "sec" }));
+    expect(result).toEqual({ error: "Incorrect password." });
+    expect(cookiesSetMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing password field", async () => {
+    process.env.ADMIN_TOKEN = "secret";
+    const result = await login({ error: null }, formData({}));
+    expect(result).toEqual({ error: "Incorrect password." });
+    expect(cookiesSetMock).not.toHaveBeenCalled();
+  });
+
+  it("sets a hardened cookie and redirects on a correct password", async () => {
     process.env.ADMIN_TOKEN = "secret";
     await login({ error: null }, formData({ password: "secret" }));
     expect(cookiesSetMock).toHaveBeenCalledWith(
       "admin_session",
-      "secret",
-      expect.objectContaining({ httpOnly: true })
+      expect.any(String),
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: SESSION_MAX_AGE_SECONDS,
+      })
     );
     expect(redirectMock).toHaveBeenCalledWith("/admin");
+  });
+
+  it("stores a verifiable session value rather than the raw token", async () => {
+    process.env.ADMIN_TOKEN = "secret";
+    await login({ error: null }, formData({ password: "secret" }));
+    const [, value] = cookiesSetMock.mock.calls[0];
+    expect(value).not.toBe("secret");
+    expect(value).not.toContain("secret");
+    await expect(verifyAdminSession(value, "secret")).resolves.toBe(true);
+  });
+
+  it("marks the cookie secure in production", async () => {
+    process.env.ADMIN_TOKEN = "secret";
+    vi.stubEnv("NODE_ENV", "production");
+    await login({ error: null }, formData({ password: "secret" }));
+    expect(cookiesSetMock).toHaveBeenCalledWith(
+      "admin_session",
+      expect.any(String),
+      expect.objectContaining({ secure: true })
+    );
+    vi.unstubAllEnvs();
   });
 });
 

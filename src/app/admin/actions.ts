@@ -5,8 +5,12 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { parseTenantForm } from "@/lib/tenant/admin-schema";
 import { createTenant, updateTenant } from "@/lib/tenant/admin-repo";
-
-const ADMIN_COOKIE = "admin_session";
+import {
+  ADMIN_COOKIE,
+  SESSION_MAX_AGE_SECONDS,
+  createAdminSession,
+  safeEqual,
+} from "@/lib/admin-session";
 
 export interface LoginState {
   error: string | null;
@@ -15,15 +19,18 @@ export interface LoginState {
 export async function login(_prevState: LoginState, formData: FormData): Promise<LoginState> {
   const token = process.env.ADMIN_TOKEN;
   const submitted = String(formData.get("password") ?? "");
-  if (!token || submitted !== token) {
+  if (!token || !(await safeEqual(submitted, token))) {
     return { error: "Incorrect password." };
   }
-  (await cookies()).set(ADMIN_COOKIE, token, {
+  // The cookie carries a signed, expiring session value, never the secret
+  // itself. `secure` is relaxed only on http://localhost, where the browser
+  // would otherwise drop the cookie and make local admin work impossible.
+  (await cookies()).set(ADMIN_COOKIE, await createAdminSession(token), {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 8,
+    maxAge: SESSION_MAX_AGE_SECONDS,
   });
   redirect("/admin");
 }

@@ -1,12 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { resolveTenantKey, middleware } from "./middleware";
+import { createAdminSession, SESSION_MAX_AGE_SECONDS } from "@/lib/admin-session";
 
 function request(host: string, path = "/", host_header = true): NextRequest {
   const url = `https://${host_header ? host : "example.invalid"}${path}`;
   return new NextRequest(url, {
     headers: host_header ? { host } : {},
   });
+}
+
+/** Runs the middleware for `path` with `cookie` as the admin session and
+ *  `token` as the configured ADMIN_TOKEN (defaults to the matching secret). */
+async function withCookie(path: string, cookie: string, token: string | undefined = "secret-token") {
+  if (token === undefined) delete process.env.ADMIN_TOKEN;
+  else process.env.ADMIN_TOKEN = token;
+  const req = request("getsteady.app", path);
+  req.cookies.set("admin_session", cookie);
+  return middleware(req);
 }
 
 const ORIGINAL_ENV = { ...process.env };
@@ -65,50 +76,75 @@ describe("resolveTenantKey", () => {
 });
 
 describe("middleware admin gating", () => {
-  it("redirects /admin to /admin/login when no ADMIN_TOKEN is configured", () => {
+  it("redirects /admin to /admin/login when no ADMIN_TOKEN is configured", async () => {
     delete process.env.ADMIN_TOKEN;
-    const res = middleware(request("getsteady.app", "/admin"));
+    const res = await middleware(request("getsteady.app", "/admin"));
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toContain("/admin/login");
   });
 
-  it("redirects /admin when the admin_session cookie doesn't match ADMIN_TOKEN", () => {
-    process.env.ADMIN_TOKEN = "secret-token";
-    const req = request("getsteady.app", "/admin");
-    req.cookies.set("admin_session", "wrong-value");
-    const res = middleware(req);
+  it("redirects /admin when ADMIN_TOKEN is unset even with a session minted from some other secret", async () => {
+    const res = await withCookie("/admin", await createAdminSession("some-other-secret"), undefined);
     expect(res.status).toBe(307);
   });
 
-  it("allows /admin through when the admin_session cookie matches ADMIN_TOKEN", () => {
+  it("redirects /admin when the cookie is absent", async () => {
     process.env.ADMIN_TOKEN = "secret-token";
-    const req = request("getsteady.app", "/admin");
-    req.cookies.set("admin_session", "secret-token");
-    const res = middleware(req);
+    const res = await middleware(request("getsteady.app", "/admin"));
+    expect(res.status).toBe(307);
+  });
+
+  it("redirects /admin when the cookie is not a signed session at all", async () => {
+    const res = await withCookie("/admin", "secret-token");
+    expect(res.status).toBe(307);
+  });
+
+  it("redirects /admin when the session was signed with a different secret", async () => {
+    const forged = await createAdminSession("not-the-real-token");
+    const res = await withCookie("/admin", forged);
+    expect(res.status).toBe(307);
+  });
+
+  it("redirects /admin when the expiry is tampered with to extend the session", async () => {
+    const session = await createAdminSession("secret-token");
+    const [, signature] = session.split(".");
+    const tampered = `${Math.floor(Date.now() / 1000) + 999999}.${signature}`;
+    const res = await withCookie("/admin", tampered);
+    expect(res.status).toBe(307);
+  });
+
+  it("redirects /admin when the session has expired", async () => {
+    const expired = await createAdminSession(
+      "secret-token",
+      Date.now() - (SESSION_MAX_AGE_SECONDS + 60) * 1000
+    );
+    const res = await withCookie("/admin", expired);
+    expect(res.status).toBe(307);
+  });
+
+  it("allows /admin through for a valid, unexpired session", async () => {
+    const res = await withCookie("/admin", await createAdminSession("secret-token"));
     expect(res.status).toBe(200);
   });
 
-  it("always allows /admin/login through, even unauthenticated", () => {
+  it("always allows /admin/login through, even unauthenticated", async () => {
     delete process.env.ADMIN_TOKEN;
-    const res = middleware(request("getsteady.app", "/admin/login"));
+    const res = await middleware(request("getsteady.app", "/admin/login"));
     expect(res.status).toBe(200);
   });
 
-  it("sets x-tenant-key on the forwarded request for non-admin paths", () => {
-    const res = middleware(request("acme-pt.getsteady.app", "/"));
+  it("sets x-tenant-key on the forwarded request for non-admin paths", async () => {
+    const res = await middleware(request("acme-pt.getsteady.app", "/"));
     expect(res.headers.get("x-middleware-request-x-tenant-key")).toBe("acme-pt");
   });
 
-  it("sets x-is-admin=0 for non-admin paths", () => {
-    const res = middleware(request("getsteady.app", "/"));
+  it("sets x-is-admin=0 for non-admin paths", async () => {
+    const res = await middleware(request("getsteady.app", "/"));
     expect(res.headers.get("x-middleware-request-x-is-admin")).toBe("0");
   });
 
-  it("sets x-is-admin=1 for admin paths", () => {
-    process.env.ADMIN_TOKEN = "secret-token";
-    const req = request("getsteady.app", "/admin");
-    req.cookies.set("admin_session", "secret-token");
-    const res = middleware(req);
+  it("sets x-is-admin=1 for admin paths", async () => {
+    const res = await withCookie("/admin", await createAdminSession("secret-token"));
     expect(res.headers.get("x-middleware-request-x-is-admin")).toBe("1");
   });
 });

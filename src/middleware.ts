@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { ADMIN_COOKIE, verifyAdminSession } from "@/lib/admin-session";
 
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "getsteady.app";
-const ADMIN_COOKIE = "admin_session";
 
 /**
  * Resolves the request's hostname (+ dev `?tenant=` override) into a tenant
@@ -35,16 +35,15 @@ export function resolveTenantKey(request: NextRequest): string {
   return `domain:${hostname}`;
 }
 
-function isAuthedAdmin(request: NextRequest): boolean {
-  const token = process.env.ADMIN_TOKEN;
-  if (!token) return false;
-  return request.cookies.get(ADMIN_COOKIE)?.value === token;
+/** Verifies the signed admin cookie. Fails closed when ADMIN_TOKEN is unset. */
+function isAuthedAdmin(request: NextRequest): Promise<boolean> {
+  return verifyAdminSession(request.cookies.get(ADMIN_COOKIE)?.value, process.env.ADMIN_TOKEN);
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login" && !isAuthedAdmin(request)) {
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login" && !(await isAuthedAdmin(request))) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
