@@ -5,14 +5,32 @@ import { fileURLToPath } from "url";
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 /**
- * Content-Security-Policy fitted to Steady, a fully-static PWA with no server
- * code, no secrets, and no external requests. Fonts are self-hosted by
- * next/font, so no external font origins are needed.
+ * Content-Security-Policy fitted to Steady.
+ *
+ * The patient-facing app is static and stores its state in localStorage, but
+ * the project is no longer server-free: middleware resolves the tenant on
+ * every request, and /admin runs server actions against Supabase. Those hold
+ * real secrets (ADMIN_TOKEN, SUPABASE_SERVICE_ROLE_KEY), so the modules that
+ * read them (lib/tenant/get-tenant.ts, lib/tenant/admin-repo.ts) are pinned
+ * server-side with `import "server-only"` and no secret is ever serialized
+ * into the client bundle.
+ *
+ * That is what keeps `connect-src 'self'` honest: Supabase is reached from
+ * the server, never from the browser, so the page itself makes no
+ * cross-origin requests. Fonts are self-hosted by next/font, so no external
+ * font origins are needed either.
  *
  * 'unsafe-inline' is allowed for script/style because Next injects inline
- * hydration scripts and next/font inlines styles; the app renders no
- * user-supplied HTML, so the XSS surface is minimal. 'unsafe-eval' is NOT
- * allowed.
+ * hydration scripts and next/font inlines styles. Tenant-supplied strings
+ * (clinic name, welcome message) are rendered as text through JSX and there
+ * is no dangerouslySetInnerHTML anywhere in src/, so the XSS surface stays
+ * small. 'unsafe-eval' is NOT allowed outside dev.
+ *
+ * Note for anyone populating `videoUrl` in lib/exercises.ts: LiteYouTube
+ * wants an i.ytimg.com thumbnail and a youtube-nocookie.com iframe, and this
+ * policy currently blocks both (img-src and the default-src fallback for
+ * frame-src). Widen those two directives deliberately, or the embed will
+ * fail silently.
  */
 const isDev = process.env.NODE_ENV === "development";
 
