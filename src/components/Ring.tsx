@@ -13,8 +13,15 @@ export function Ring({
   const C = 2 * Math.PI * R;
   return (
     <div className="ring-wrap">
-      <svg viewBox="0 0 250 250" width="250" height="250">
-        <circle cx="125" cy="125" r={R} fill="#fff" stroke="#E4ECE8" strokeWidth="10" />
+      <svg viewBox="0 0 250 250" className="ring-svg" role="presentation">
+        <circle
+          cx="125"
+          cy="125"
+          r={R}
+          fill="var(--card)"
+          stroke="var(--line)"
+          strokeWidth="10"
+        />
         <circle
           cx="125"
           cy="125"

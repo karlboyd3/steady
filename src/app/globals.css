@@ -268,11 +268,16 @@ select:focus-visible,
 
 .day-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 9px;
+  /* 6 up wherever a 44px cell fits, 5 up when it doesn't. At 360px the
+     6-column layout left ~39px cells, under the minimum touch target:
+     324px frame - 44px card padding - 5 gaps = 39.2px each. */
+  grid-template-columns: repeat(auto-fit, minmax(var(--tap), 1fr));
+  gap: var(--s-2);
 }
 .day-dot {
   aspect-ratio: 1;
+  min-width: var(--tap);
+  min-height: var(--tap);
   border-radius: var(--r-md);
   background: var(--card);
   border: 1.5px solid var(--line);
@@ -1470,4 +1475,59 @@ button:disabled:active {
 .is-loading {
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* ============================================================
+   Responsive guards. Verified at 360 / 390 / 430px and at tablet
+   width; the frame is centred and capped at 520px above that.
+   ============================================================ */
+
+/* Nothing should ever produce a sideways scroll on a phone. */
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* Tenant clinic names and exercise names are arbitrary-length strings from
+   the database, so the headings that carry them must break rather than
+   push the layout wide. */
+.overview-title,
+.detail-name,
+.ex-name,
+.next-name,
+.level-name,
+.pet-name-row,
+.ov-name,
+.celebration-title {
+  overflow-wrap: anywhere;
+}
+
+/* The countdown ring is a fixed square; on the narrowest phones it has to
+   shrink with the frame instead of pinning the card open. */
+.ring-wrap {
+  width: min(250px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+}
+.stage-anim-prep,
+.stage-anim-next {
+  max-width: 100%;
+}
+
+/* The ring SVG scales with its wrapper rather than carrying a fixed
+   250px attribute that would overflow a shrunken frame. */
+.ring-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Three controls at 360px give ~100px each; keep the labels from
+   forcing the row wider than the card. */
+.ctrl {
+  min-width: 0;
+}
+.overview-stat,
+.stat {
+  min-width: 0;
 }
