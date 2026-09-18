@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Steady
 
-## Getting Started
+A mobile-first, installable PWA that guides people through 30 days of knee rehabilitation, built to be white-labeled and licensed by physical therapy clinics.
 
-First, run the development server:
+**Live demo:** [ADD LIVE URL HERE]
+
+![Steady demo](ADD_GIF_PATH_HERE.gif)
+
+## Highlights
+
+- **Guided workout flow.** Overview, exercise detail sheet, and a session player with timers, wake lock (the screen stays on mid-exercise), audio cues, and reduced-motion support.
+- **Multi-tenant white-labeling.** Middleware resolves each request's hostname (`clinic.getsteady.app` or a clinic's own custom domain) into a tenant, then the server applies that clinic's theme, copy, and PWA manifest. Unknown hosts fail soft to the default tenant instead of erroring.
+- **3D pet companion.** A react-three-fiber companion with six species, a coin and cosmetic reward system, loadable GLB cosmetics, and per-species animation overrides, which keeps patients coming back day after day.
+- **Safe data migration.** Progress lives in tenant-scoped localStorage, with a versioned migration that upgrades legacy saved data without losing anyone's streak.
+- **Operator admin panel.** A password-protected admin route, gated in middleware.
+- **Security by default.** A strict Content-Security-Policy and security headers, a dependency audit that runs before every production build, and Zod validation at data boundaries.
+- **Android distribution.** Packaged for Google Play as a Trusted Web Activity, with Digital Asset Links generation and verification scripts.
+
+## Tech stack
+
+Next.js 15 (App Router), React 19, TypeScript, Supabase (Postgres), react-three-fiber and drei, Zod, Vitest, Testing Library, Vercel.
+
+## Testing
+
+301 tests across 33 test files cover the session engine, rewards, storage migration, tenant resolution, middleware, and UI components.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci
+npm test          # vitest run
+npm run typecheck # tsc --noEmit
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Running locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local   # fill in Supabase URL, service role key, and ADMIN_TOKEN
+npm ci
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+In development, preview any tenant with `?tenant=<slug>` (for example `http://localhost:3000/?tenant=demo`). The override is read only when `NODE_ENV` is not `production`, so it cannot be used against a deployed build.
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  middleware.ts        hostname -> tenant resolution, admin gating
+  app/                 routes (home, session, level, buddy, admin, legal pages)
+  components/          UI (SessionPlayer, WorkoutOverview, PetScreen, ...)
+  hooks/               useSessionEngine, useWakeLock, usePoseLoop, ...
+  lib/                 session engine, rewards, storage + migration, tenant layer
+supabase/migrations/   tenants table and default species
+twa/                   Google Play (Trusted Web Activity) packaging
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Why I built it
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Home exercise programs fail when patients stop doing them. Steady treats adherence as the core product problem: short guided sessions, visible progress, and a companion that rewards consistency. Clinics get all of this under their own brand.
