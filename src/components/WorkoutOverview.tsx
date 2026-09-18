@@ -78,8 +78,8 @@ export function WorkoutOverview({
               <Figure exercise={item.ex} t={0} showAngle={false} />
             </span>
             <span className="ov-name">
-              {item.ex.name.toUpperCase()}
-              {item.ex.perLeg ? " · EACH SIDE" : ""}
+              {item.ex.name}
+              {item.ex.perLeg ? " · each side" : ""}
             </span>
             <span className="ov-volume">{formatVolumeLabel(item)}</span>
           </button>

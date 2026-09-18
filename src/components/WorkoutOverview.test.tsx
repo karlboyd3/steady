@@ -25,12 +25,12 @@ describe("WorkoutOverview", () => {
       />
     );
     expect(screen.getByText(String(items.length))).toBeInTheDocument();
-    expect(screen.getByText(items[0].ex.name.toUpperCase())).toBeInTheDocument();
+    expect(screen.getByText(items[0].ex.name, { exact: false })).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Start Workout"));
     expect(onStart).toHaveBeenCalled();
 
-    fireEvent.click(screen.getByText(items[0].ex.name.toUpperCase()));
+    fireEvent.click(screen.getByText(items[0].ex.name, { exact: false }));
     expect(onSelectExercise).toHaveBeenCalledWith(0);
   });
 

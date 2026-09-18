@@ -1233,6 +1233,10 @@ select:focus-visible,
   flex: 1;
   font-size: var(--text-sm);
   font-weight: 700;
+  /* Uppercased here rather than with .toUpperCase() in the markup, so the
+     accessible name a screen reader announces stays "Heel Slides · each
+     side" instead of being spelled out as an acronym. */
+  text-transform: uppercase;
   letter-spacing: 0.3px;
   color: var(--ink);
 }

@@ -6,6 +6,10 @@ A mobile-first, installable PWA that guides people through 30 days of knee rehab
 
 ![Steady demo](ADD_GIF_PATH_HERE.gif)
 
+| Home | Workout overview | Session player | Pet companion |
+| --- | --- | --- | --- |
+| ![Home screen](docs/screenshots/home.png) | ![Workout overview](docs/screenshots/workout-overview.png) | ![Session player](docs/screenshots/session-player.png) | ![Pet companion](docs/screenshots/pet-screen.png) |
+
 ## Highlights
 
 - **Guided workout flow.** Overview, exercise detail sheet, and a session player with timers, wake lock (the screen stays on mid-exercise), audio cues, and reduced-motion support.
@@ -22,7 +26,7 @@ Next.js 15 (App Router), React 19, TypeScript, Supabase (Postgres), react-three-
 
 ## Testing
 
-333 tests across 34 test files cover the session engine, rewards, storage migration, tenant resolution, middleware, and UI components.
+336 tests across 34 test files cover the session engine, rewards, storage migration, tenant resolution, middleware, and UI components.
 
 ```bash
 npm ci
